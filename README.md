@@ -15,3 +15,7 @@ PASOS >
       o una forma más sencilla hagánlo como quieran pero SIN PERDER LA COMUNICACION CON EL CONTROLADOR
   3. Diseño
     3.1. Programen solo la UI de carga de imagenes, basicamente lo que les mande pero con el diseño que propusimos
+
+NOTAS IMPORTANTISIMAS
+  Recuerden que es python, yo estoy usando pycharm.
+  Descarguen git y sincronicen con su IDE.
