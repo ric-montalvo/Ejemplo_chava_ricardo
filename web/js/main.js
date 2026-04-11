@@ -1,4 +1,5 @@
 // Control de pantallas
+let procesando = false;
 function mostrarPantalla(id) {
     document.querySelectorAll('.pantalla').forEach(p => p.classList.remove('activa'));
     document.getElementById(id).classList.add('activa');
@@ -83,55 +84,54 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // Evento del botón procesar (por ahora solo muestra alerta)
     if (btnProcesar) {
-        btnProcesar.addEventListener('click', () => {
-            if (!btnProcesar.disabled) {
-                let procesando = false;
-                let timeoutId = null;
+    btnProcesar.addEventListener('click', async () => {
+        if (procesando) return;
+        const nombre = nombreInput.value.trim();
+        if (!nombre || !imagenSeleccionada) return;
 
-                if (btnProcesar) {
-                    btnProcesar.addEventListener('click', () => {
-                        if (procesando) return;
-                        const nombre = nombreInput.value.trim();
-                        if (!nombre || !imagenSeleccionada) return;
+        procesando = true;
+        document.getElementById('overlay-procesando').style.display = 'flex';
+        document.getElementById('nombre-procesando').innerText = nombre;
 
-                        procesando = true;
-                        document.getElementById('overlay-procesando').style.display = 'flex';
-                        document.getElementById('nombre-procesando').innerText = nombre;
+        // Convertir la imagen seleccionada a base64 (data URL)
+        const reader = new FileReader();
+        reader.onload = async function(ev) {
+            const dataUrl = ev.target.result;
 
-                        // Simular procesamiento (3 segundos)
-                        timeoutId = setTimeout(() => {
-                            // Ocultar overlay
-                            document.getElementById('overlay-procesando').style.display = 'none';
-                            procesando = false;
-                            // Redirigir a expedientes (aunque aún no haya datos reales)
-                            mostrarPantalla('pantalla-expedientes');
-                            // Limpiar campos
-                            nombreInput.value = '';
-                            imagenSeleccionada = null;
-                            previewContainer.style.display = 'none';
-                            areaCarga.style.display = 'block';
-                            inputFile.value = '';
-                            validarFormulario();
-                        }, 3000);
-                    });
+            try {
+                // Llamar a la función de Python
+                const respuesta = await eel.procesar_imagen_desde_js(dataUrl, nombre)();
+
+                if (respuesta.exito) {
+                    // Guardar los resultados en alguna variable global para mostrarlos después
+                    window.ultimosResultados = respuesta.imagenes;
+                    // Ocultar overlay
+                    document.getElementById('overlay-procesando').style.display = 'none';
+                    procesando = false;
+                    // Mostrar pantalla de expedientes (por ahora)
+                    mostrarPantalla('pantalla-expedientes');
+                    // Limpiar formulario
+                    nombreInput.value = '';
+                    imagenSeleccionada = null;
+                    previewContainer.style.display = 'none';
+                    areaCarga.style.display = 'block';
+                    inputFile.value = '';
+                    validarFormulario();
+                    // Podríamos recargar expedientes para incluir este nuevo
+                    if (typeof cargarExpedientesMock === 'function') cargarExpedientesMock();
+                } else {
+                    throw new Error(respuesta.error);
                 }
-
-                // Cancelar procesamiento
-                const btnCancelar = document.getElementById('btn-cancelar-procesamiento');
-                if (btnCancelar) {
-                    btnCancelar.addEventListener('click', () => {
-                        if (timeoutId) {
-                            clearTimeout(timeoutId);
-                            timeoutId = null;
-                        }
-                        document.getElementById('overlay-procesando').style.display = 'none';
-                        procesando = false;
-                        alert('Procesamiento cancelado');
-                    });
-                }
+            } catch (error) {
+                console.error(error);
+                alert('Error al procesar: ' + error.message);
+                document.getElementById('overlay-procesando').style.display = 'none';
+                procesando = false;
             }
-        });
-    }
+        };
+        reader.readAsDataURL(imagenSeleccionada);
+    });
+}
 
     // --- Pantalla de expedientes (mock) ---
     function cargarExpedientesMock() {
