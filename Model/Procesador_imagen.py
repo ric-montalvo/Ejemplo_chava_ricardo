@@ -2,7 +2,18 @@ import os
 import cv2
 import numpy as np
 from PIL import Image, ImageOps
-
+# Model/Procesador_imagen.py
+# Descripción: Modelo que contiene la lógica de negocio (procesamiento de imágenes).
+#              Actualmente solo hace: validar extensión, convertir a grises, invertir grises,
+#              guardar resultado y devolver lista de imágenes para la vista.
+#
+# IMPORTANTE: Este archivo es un placeholder. El pipeline real de segmentación dental
+#             (con detección de bordes, métricas, etc.) se implementará AQUÍ más adelante.
+#             Por ahora, es solo un ejemplo funcional para probar la comunicación MVC.
+#
+# NOTA PARA MODIFICAR LA VISTA: El modelo NO debe cambiar por ahora. La función
+# 'procesar_pipeline' debe seguir devolviendo una lista de tuplas (imagen_PIL, texto).
+# La vista espera ese formato. Si se cambia el modelo, hay que actualizar la vista.
 
 class Procesador_imagen:
     def procesar_pipeline(self, path):
@@ -14,17 +25,17 @@ class Procesador_imagen:
             #Lectura
             img_original = Image.open(path)
 
-            #Preparacion
+            #Preparacion para convertir en escala de grises
             img_gris = ImageOps.grayscale(img_original)
             np_grises = np.array(img_gris)
 
-            #Procesado
+            #Procesado a inversion de grises
             np_invertida = self.grises_invertidos(np_grises)
 
-            #Conversion a imagen
+            #Conversion a imagen nuevamente
             img_invertida = Image.fromarray(np_invertida)
 
-            #Guaradado
+            #Guaradado en misma carpeta que original
             self.guardar_resultado(path, np_invertida, "_invertida")
 
             #Retorno a la vista

@@ -1,13 +1,38 @@
 import tkinter as tk
 from tkinter import filedialog, messagebox
 from PIL import ImageTk
-
+# View/Interfaz_basica.py
+# Descripción: Vista (interfaz gráfica) construida con Tkinter. Muestra un canvas con
+#              scrollbars para ver imágenes grandes, botones de navegación (anterior/siguiente)
+#              y un botón para abrir imagen.
+#
+# COMUNICACIÓN CON EL CONTROLADOR:
+# - La vista tiene un atributo 'self.on_open_image_callback' que inicialmente es None.
+# - El controlador asigna su método 'manejar_nueva_imagen' a ese callback.
+# - Cuando el usuario hace clic en "Abrir imagen", se llama a 'trigger_open_image', que
+#   abre el diálogo y, si el callback existe, lo invoca pasándole la ruta.
+# - El controlador entonces procesa la imagen y llama a 'update_images' o 'show_error'.
+#
+# LO QUE PUEDES MODIFICAR:
+# - Diseño: colores, tamaños, disposición de botones, fuentes, iconos, etc.
+# - Agregar nuevos widgets (por ejemplo, una barra de progreso, un menú, etc.)
+# - Cambiar la librería gráfica (por ejemplo, usar Eel, PyQt, CustomTkinter) SIEMPRE QUE
+#   se mantenga el mecanismo de callback 'on_open_image_callback' y los métodos
+#   'update_images' y 'show_error' con la misma firma.
+#
+# LO QUE NO DEBES MODIFICAR (para no romper la comunicación):
+# - El nombre 'on_open_image_callback'
+# - La firma de 'trigger_open_image' (sin argumentos, internamente llama al callback)
+# - La firma de 'update_images(self, images)'
+# - La firma de 'show_error(self, message)'
+# - El hecho de que 'update_images' reciba una lista de tuplas (imagen_PIL, texto)
 
 class Interfaz_basica:
     def __init__(self, root):
         self.root = root
         self.root.title("PDI - Visualizador Tamaño Real")
 
+        # Almacena las imágenes devueltas por el modelo (lista de tuplas)
         self.image_stages = []
         self.stage_index = 0
 
@@ -48,6 +73,7 @@ class Interfaz_basica:
         self.h_scroll.pack(side=tk.BOTTOM, fill=tk.X)
         self.canvas.pack(side=tk.LEFT, fill=tk.BOTH, expand=True)
 
+        # Atajos de teclado: flechas izquierda/derecha para navegar
         self.root.bind('<Left>', lambda e: self.prev_stage())
         self.root.bind('<Right>', lambda e: self.next_stage())
 
@@ -58,7 +84,7 @@ class Interfaz_basica:
         )
         if not path: return
 
-        # Si hay un controlador escuchando, le manda la ruta
+        # Si el controlador asignó un callback, lo llamamos con la ruta
         if self.on_open_image_callback:
             self.on_open_image_callback(path)
 
