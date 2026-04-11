@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sistema de Segmentación Dental</title>
+    <link rel="stylesheet" href="css/style.css">
+    <script type="text/javascript" src="/eel.js"></script>
+</head>
+<body>
+    <div id="app">
+        <!-- Pantalla de menú principal -->
+        <div id="pantalla-menu" class="pantalla activa">
+            <div class="contenedor">
+                <h1>Sistema de Segmentación Dental</h1>
+                <p class="subtitulo">Procesamiento automático de radiografías dentales</p>
+
+                <div class="botones-principales">
+                    <div class="tarjeta" id="btn-cargar">
+                        <div class="icono">📂</div>
+                        <h2>Cargar Imagen</h2>
+                        <p>Sube una radiografía dental para procesamiento automático</p>
+                        <button class="btn-accion">Comenzar</button>
+                    </div>
+                    <div class="tarjeta" id="btn-ver-expedientes">
+                        <div class="icono">📋</div>
+                        <h2>Ver Expedientes</h2>
+                        <p>Consulta y administra los registros de pacientes</p>
+                        <button class="btn-accion">Ver Registros</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Pantalla de carga (placeholder) -->
+        <div id="pantalla-carga" class="pantalla">
+            <button class="btn-volver" onclick="mostrarPantalla('pantalla-menu')">← Volver</button>
+            <div class="carga-container">
+                <h2>Cargar Radiografía Dental</h2>
+                <p class="subtitulo-carga">Ingresa el nombre del paciente y selecciona la imagen</p>
+
+                <div class="campo">
+                    <label>Nombre del Paciente</label>
+                    <input type="text" id="nombre-paciente" placeholder="Ej: Juan Pérez">
+                </div>
+
+                <div class="campo">
+                    <label>Imagen de Radiografía</label>
+                    <div id="area-carga" class="area-carga">
+                        <p>📁 Haz clic para seleccionar una imagen</p>
+                        <p class="formatos">JPG, JPEG o PNG</p>
+                        <input type="file" id="input-imagen" accept=".jpg,.jpeg,.png" style="display: none">
+                    </div>
+                    <div id="preview-container" style="display: none;">
+                        <img id="vista-previa" alt="Vista previa" style="max-width: 100%; max-height: 200px;">
+                        <button id="btn-remover" class="btn-remover">✕ Quitar</button>
+                    </div>
+                </div>
+
+                <button id="btn-procesar" class="btn-procesar" disabled>Procesar Imagen</button>
+            </div>
+        </div>
+
+        <!-- Pantalla de expedientes (placeholder) -->
+        <div id="pantalla-expedientes" class="pantalla">
+            <button class="btn-volver" onclick="mostrarPantalla('pantalla-menu')">← Volver</button>
+            <div class="expedientes-container">
+                <h2>Expedientes de Pacientes</h2>
+                <div class="barra-filtros">
+                    <input type="text" id="buscador" placeholder="Buscar por nombre...">
+                    <select id="ordenamiento">
+                        <option value="reciente">Más recientes</option>
+                        <option value="antiguo">Más antiguos</option>
+                        <option value="az">A-Z</option>
+                        <option value="za">Z-A</option>
+                    </select>
+                </div>
+                <div id="lista-expedientes" class="lista-expedientes">
+                    <!-- Los expedientes se cargarán aquí dinámicamente -->
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+    <!-- Overlay de procesamiento -->
+    <div id="overlay-procesando" class="overlay" style="display: none;">
+        <div class="modal-procesando">
+            <div class="spinner"></div>
+            <p>Analizando radiografía dental de <span id="nombre-procesando"></span></p>
+            <button id="btn-cancelar-procesamiento" class="btn-cancelar">Cancelar Procesamiento</button>
+        </div>
+    </div>
+<script src="js/main.js"></script>
+</body>
+</html>
