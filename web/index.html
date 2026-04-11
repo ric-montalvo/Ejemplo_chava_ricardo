@@ -1,0 +1,19 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>Test Eel</title>
+    <script type="text/javascript" src="/eel.js"></script>
+</head>
+<body>
+    <h1>Test de Eel</h1>
+    <button onclick="callPython()">Llamar a Python</button>
+    <p id="resultado"></p>
+    <script>
+        async function callPython() {
+            const res = await eel.test()();
+            document.getElementById('resultado').innerText = res;
+        }
+    </script>
+</body>
+</html>
