@@ -117,3 +117,81 @@ h1 {
 .btn-volver:hover {
     text-decoration: underline;
 }
+
+/* Pantalla de carga */
+.carga-container {
+    max-width: 600px;
+    margin: 0 auto;
+}
+.carga-container h2 {
+    text-align: center;
+    margin-bottom: 10px;
+}
+.subtitulo-carga {
+    text-align: center;
+    color: #666;
+    margin-bottom: 30px;
+}
+.campo {
+    margin-bottom: 25px;
+}
+.campo label {
+    display: block;
+    font-weight: bold;
+    margin-bottom: 8px;
+    color: #333;
+}
+.campo input[type="text"] {
+    width: 100%;
+    padding: 12px;
+    border: 1px solid #ddd;
+    border-radius: 10px;
+    font-size: 1rem;
+}
+.area-carga {
+    border: 2px dashed #ccc;
+    border-radius: 15px;
+    padding: 30px;
+    text-align: center;
+    cursor: pointer;
+    transition: background 0.3s;
+}
+.area-carga:hover {
+    background: #f9f9ff;
+    border-color: #667eea;
+}
+.area-carga p {
+    margin: 5px 0;
+}
+.formatos {
+    font-size: 0.8rem;
+    color: #999;
+}
+#preview-container {
+    margin-top: 15px;
+    text-align: center;
+}
+.btn-remover {
+    background: #ff4757;
+    color: white;
+    border: none;
+    padding: 5px 10px;
+    border-radius: 20px;
+    margin-top: 10px;
+    cursor: pointer;
+}
+.btn-procesar {
+    width: 100%;
+    padding: 14px;
+    background: #667eea;
+    color: white;
+    border: none;
+    border-radius: 30px;
+    font-size: 1.1rem;
+    cursor: pointer;
+    transition: background 0.3s;
+}
+.btn-procesar:disabled {
+    background: #ccc;
+    cursor: not-allowed;
+}

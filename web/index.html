@@ -35,8 +35,30 @@
         <!-- Pantalla de carga (placeholder) -->
         <div id="pantalla-carga" class="pantalla">
             <button class="btn-volver" onclick="mostrarPantalla('pantalla-menu')">← Volver</button>
-            <h2>Cargar Radiografía Dental</h2>
-            <p>Próximamente: formulario de carga</p>
+            <div class="carga-container">
+                <h2>Cargar Radiografía Dental</h2>
+                <p class="subtitulo-carga">Ingresa el nombre del paciente y selecciona la imagen</p>
+
+                <div class="campo">
+                    <label>Nombre del Paciente</label>
+                    <input type="text" id="nombre-paciente" placeholder="Ej: Juan Pérez">
+                </div>
+
+                <div class="campo">
+                    <label>Imagen de Radiografía</label>
+                    <div id="area-carga" class="area-carga">
+                        <p>📁 Haz clic para seleccionar una imagen</p>
+                        <p class="formatos">JPG, JPEG o PNG</p>
+                        <input type="file" id="input-imagen" accept=".jpg,.jpeg,.png" style="display: none">
+                    </div>
+                    <div id="preview-container" style="display: none;">
+                        <img id="vista-previa" alt="Vista previa" style="max-width: 100%; max-height: 200px;">
+                        <button id="btn-remover" class="btn-remover">✕ Quitar</button>
+                    </div>
+                </div>
+
+                <button id="btn-procesar" class="btn-procesar" disabled>Procesar Imagen</button>
+            </div>
         </div>
 
         <!-- Pantalla de expedientes (placeholder) -->
