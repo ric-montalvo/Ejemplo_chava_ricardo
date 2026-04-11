@@ -195,3 +195,90 @@ h1 {
     background: #ccc;
     cursor: not-allowed;
 }
+
+.overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0,0,0,0.7);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 1000;
+}
+.modal-procesando {
+    background: white;
+    padding: 40px;
+    border-radius: 30px;
+    text-align: center;
+    min-width: 300px;
+}
+.spinner {
+    border: 5px solid #f3f3f3;
+    border-top: 5px solid #667eea;
+    border-radius: 50%;
+    width: 50px;
+    height: 50px;
+    animation: spin 1s linear infinite;
+    margin: 0 auto 20px;
+}
+@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+.btn-cancelar {
+    background: #ff4757;
+    color: white;
+    border: none;
+    padding: 10px 20px;
+    border-radius: 25px;
+    margin-top: 20px;
+    cursor: pointer;
+}
+
+.expedientes-container {
+    max-width: 800px;
+    margin: 0 auto;
+}
+.barra-filtros {
+    display: flex;
+    gap: 15px;
+    margin: 20px 0;
+}
+.barra-filtros input, .barra-filtros select {
+    flex: 1;
+    padding: 10px;
+    border: 1px solid #ddd;
+    border-radius: 25px;
+}
+.lista-expedientes {
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+}
+.tarjeta-expediente {
+    background: #f8f9ff;
+    border-radius: 15px;
+    padding: 15px 20px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border: 1px solid #e0e0e0;
+}
+.info-expediente strong {
+    font-size: 1.1rem;
+    display: block;
+}
+.info-expediente small {
+    color: #666;
+}
+.btn-ver-detalles {
+    background: #667eea;
+    color: white;
+    border: none;
+    padding: 8px 20px;
+    border-radius: 20px;
+    cursor: pointer;
+}

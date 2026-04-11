@@ -64,11 +64,33 @@
         <!-- Pantalla de expedientes (placeholder) -->
         <div id="pantalla-expedientes" class="pantalla">
             <button class="btn-volver" onclick="mostrarPantalla('pantalla-menu')">← Volver</button>
-            <h2>Expedientes de Pacientes</h2>
-            <p>Próximamente: lista de expedientes</p>
+            <div class="expedientes-container">
+                <h2>Expedientes de Pacientes</h2>
+                <div class="barra-filtros">
+                    <input type="text" id="buscador" placeholder="Buscar por nombre...">
+                    <select id="ordenamiento">
+                        <option value="reciente">Más recientes</option>
+                        <option value="antiguo">Más antiguos</option>
+                        <option value="az">A-Z</option>
+                        <option value="za">Z-A</option>
+                    </select>
+                </div>
+                <div id="lista-expedientes" class="lista-expedientes">
+                    <!-- Los expedientes se cargarán aquí dinámicamente -->
+                </div>
+            </div>
         </div>
 
     </div>
-    <script src="js/main.js"></script>
+
+    <!-- Overlay de procesamiento -->
+    <div id="overlay-procesando" class="overlay" style="display: none;">
+        <div class="modal-procesando">
+            <div class="spinner"></div>
+            <p>Analizando radiografía dental de <span id="nombre-procesando"></span></p>
+            <button id="btn-cancelar-procesamiento" class="btn-cancelar">Cancelar Procesamiento</button>
+        </div>
+    </div>
+<script src="js/main.js"></script>
 </body>
 </html>
