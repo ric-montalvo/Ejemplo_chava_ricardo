@@ -1,19 +1,52 @@
 <!DOCTYPE html>
-<html>
+<html lang="es">
 <head>
     <meta charset="UTF-8">
-    <title>Test Eel</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sistema de Segmentación Dental</title>
+    <link rel="stylesheet" href="css/style.css">
     <script type="text/javascript" src="/eel.js"></script>
 </head>
 <body>
-    <h1>Test de Eel</h1>
-    <button onclick="callPython()">Llamar a Python</button>
-    <p id="resultado"></p>
-    <script>
-        async function callPython() {
-            const res = await eel.test()();
-            document.getElementById('resultado').innerText = res;
-        }
-    </script>
+    <div id="app">
+        <!-- Pantalla de menú principal -->
+        <div id="pantalla-menu" class="pantalla activa">
+            <div class="contenedor">
+                <h1>Sistema de Segmentación Dental</h1>
+                <p class="subtitulo">Procesamiento automático de radiografías dentales</p>
+
+                <div class="botones-principales">
+                    <div class="tarjeta" id="btn-cargar">
+                        <div class="icono">📂</div>
+                        <h2>Cargar Imagen</h2>
+                        <p>Sube una radiografía dental para procesamiento automático</p>
+                        <button class="btn-accion">Comenzar</button>
+                    </div>
+                    <div class="tarjeta" id="btn-ver-expedientes">
+                        <div class="icono">📋</div>
+                        <h2>Ver Expedientes</h2>
+                        <p>Consulta y administra los registros de pacientes</p>
+                        <button class="btn-accion">Ver Registros</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Pantalla de carga (placeholder) -->
+        <div id="pantalla-carga" class="pantalla">
+            <button class="btn-volver" onclick="mostrarPantalla('pantalla-menu')">← Volver</button>
+            <h2>Cargar Radiografía Dental</h2>
+            <p>Próximamente: formulario de carga</p>
+        </div>
+
+        <!-- Pantalla de expedientes (placeholder) -->
+        <div id="pantalla-expedientes" class="pantalla">
+            <button class="btn-volver" onclick="mostrarPantalla('pantalla-menu')">← Volver</button>
+            <h2>Expedientes de Pacientes</h2>
+            <p>Próximamente: lista de expedientes</p>
+        </div>
+
+    </div>
+    <script src="js/main.js"></script>
 </body>
 </html>
