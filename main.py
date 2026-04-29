@@ -1,20 +1,12 @@
-import tkinter as tk
-from View.Interfaz_basica import Interfaz_basica
-from Model.Procesador_imagen import Procesador_imagen
-from Controller.Pipeline import Pipeline
+# main.py (en la raíz)
+import customtkinter as ctk
+
+from Controller.app_controller import AppController
+
+
+ctk.set_appearance_mode("light")
+ctk.set_default_color_theme("blue")
 
 if __name__ == "__main__":
-    # crear ventana con tkinter
-    root = tk.Tk()
-
-    # crear el modelo ,el motor de procesamiento de imagenes
-    modelo = Procesador_imagen()
-
-    #La interfaz grafica que modificaremos sin cambiar los callbacks
-    vista = Interfaz_basica(root)
-
-    #se encarga de enlazar la vista y el modelo
-    controlador = Pipeline(vista, modelo)
-
-    #iniciar bucle de ventaja con tkinter y que se quede abierta
-    root.mainloop()
+    app = AppController()
+    app.run()
