@@ -13,58 +13,147 @@ class ExpedientesView(ctk.CTkFrame):
         top_bar = ctk.CTkFrame(self, fg_color="transparent", height=50)
         top_bar.pack(fill="x", padx=30, pady=(20, 0))
         ctk.CTkButton(top_bar, text="← Volver", command=self.controller.volver_menu,
-                      width=80, height=35, corner_radius=15, fg_color="#9ca3af").pack(side="left")
+                      width=80, height=35, corner_radius=15, fg_color="#9ca3af",
+                      hover_color="#6b7280").pack(side="left")
 
-        ctk.CTkLabel(self, text="Expedientes de Pacientes", font=ctk.CTkFont(size=28, weight="bold"),
+        # Título
+        ctk.CTkLabel(self, text="Expedientes de Pacientes",
+                     font=ctk.CTkFont(size=28, weight="bold"),
                      text_color="#1f2937").pack(pady=20)
 
-        # Filtros (solo UI)
+        # Filtros (barra de búsqueda y orden - UI solamente por ahora)
         filtros_frame = ctk.CTkFrame(self, fg_color="transparent")
         filtros_frame.pack(fill="x", padx=40, pady=10)
-        ctk.CTkEntry(filtros_frame, placeholder_text="Buscar por nombre...", width=250, height=35,
-                     corner_radius=15, border_color="#d1d5db").pack(side="left", padx=5)
-        ctk.CTkOptionMenu(filtros_frame, values=["Más recientes"], width=150, height=35,
-                          corner_radius=15, fg_color="#f3f4f6", button_color="#3b82f6").pack(side="right", padx=5)
 
-        lista_frame = ctk.CTkScrollableFrame(self, width=800, height=450, fg_color="transparent")
+        entry_buscar = ctk.CTkEntry(filtros_frame, placeholder_text="Buscar por nombre...",
+                                    width=250, height=35, corner_radius=15,
+                                    border_color="#d1d5db")
+        entry_buscar.pack(side="left", padx=5)
+
+        combo_orden = ctk.CTkOptionMenu(filtros_frame,
+                                        values=["Más recientes", "Más antiguos", "A-Z", "Z-A"],
+                                        width=150, height=35, corner_radius=15,
+                                        fg_color="#f3f4f6", button_color="#3b82f6")
+        combo_orden.pack(side="right", padx=5)
+
+        # Contenedor de lista de expedientes (scroll)
+        lista_frame = ctk.CTkScrollableFrame(self, width=800, height=450,
+                                             fg_color="transparent")
         lista_frame.pack(pady=20, padx=40, fill="both", expand=True)
 
         if not expedientes:
-            empty = ctk.CTkFrame(lista_frame, fg_color="transparent")
-            empty.pack(expand=True)
-            ctk.CTkLabel(empty, text="📂 No hay expedientes registrados", font=ctk.CTkFont(size=16),
-                         text_color="#6b7280").pack(pady=30)
-            ctk.CTkButton(empty, text="Cargar Primera Imagen", command=self.controller.mostrar_carga,
-                          width=200, height=40, corner_radius=20, fg_color="#3b82f6").pack(pady=10)
+            empty_frame = ctk.CTkFrame(lista_frame, fg_color="transparent")
+            empty_frame.pack(expand=True)
+            ctk.CTkLabel(empty_frame, text="📂 No hay expedientes registrados",
+                         font=ctk.CTkFont(size=16), text_color="#6b7280").pack(pady=30)
         else:
             for carpeta in expedientes:
                 fecha_mod = formatear_fecha(carpeta.stat().st_mtime)
                 archivos = list(carpeta.glob("*"))
                 num_piezas = len([f for f in archivos if "invertida" in f.name]) * 8
 
-                card = ctk.CTkFrame(lista_frame, corner_radius=15, border_width=1, border_color="#e5e7eb", fg_color="white")
+                # Tarjeta del expediente
+                card = ctk.CTkFrame(lista_frame, corner_radius=15, border_width=1,
+                                    border_color="#e5e7eb", fg_color="white")
                 card.pack(fill="x", pady=8, padx=10)
 
-                info = ctk.CTkFrame(card, fg_color="transparent")
-                info.pack(side="left", fill="x", expand=True, padx=15, pady=12)
-                ctk.CTkLabel(info, text=carpeta.name, font=ctk.CTkFont(size=16, weight="bold")).pack(anchor="w")
-                ctk.CTkLabel(info, text=f"{fecha_mod}  |  {num_piezas} piezas segmentadas",
+                info_frame = ctk.CTkFrame(card, fg_color="transparent")
+                info_frame.pack(side="left", fill="x", expand=True, padx=15, pady=12)
+
+                ctk.CTkLabel(info_frame, text=carpeta.name,
+                             font=ctk.CTkFont(size=16, weight="bold")).pack(anchor="w")
+                ctk.CTkLabel(info_frame, text=f"{fecha_mod}  |  {num_piezas} piezas segmentadas",
                              font=ctk.CTkFont(size=12), text_color="#6b7280").pack(anchor="w")
 
-                btn_ver = ctk.CTkButton(card, text="Ver Detalles", width=110, height=35, corner_radius=15,
-                                        fg_color="#3b82f6", command=lambda c=carpeta: self.mostrar_detalle(c))
-                btn_ver.pack(side="right", padx=15)
+                # Frame para botones (Ver Detalles + Eliminar)
+                botones_card = ctk.CTkFrame(card, fg_color="transparent")
+                botones_card.pack(side="right", padx=15)
 
-        ctk.CTkButton(self, text="🔄 Actualizar", command=self.controller.mostrar_expedientes,
-                      width=100, height=35, corner_radius=15, fg_color="#9ca3af").pack(pady=10)
+                # Botón Ver Detalles
+                btn_ver = ctk.CTkButton(botones_card, text="Ver Detalles", width=110, height=35,
+                                        corner_radius=15, fg_color="#3b82f6",
+                                        hover_color="#2563eb",
+                                        command=lambda c=carpeta: self.mostrar_detalle(c))
+                btn_ver.pack(side="left", padx=5)
+
+                # Botón Eliminar (ícono 🗑️)
+                btn_eliminar = ctk.CTkButton(botones_card, text="🗑️", width=40, height=35,
+                                             corner_radius=15, fg_color="#ef4444",
+                                             hover_color="#dc2626",
+                                             command=lambda c=carpeta: self.confirmar_eliminacion(c))
+                btn_eliminar.pack(side="left", padx=5)
+
+        # Botones abajo: Actualizar + Nuevo
+        botones_frame = ctk.CTkFrame(self, fg_color="transparent")
+        botones_frame.pack(pady=10)
+
+        ctk.CTkButton(botones_frame, text="🔄 Actualizar",
+                      command=self.controller.mostrar_expedientes,
+                      width=100, height=35, corner_radius=15,
+                      fg_color="#9ca3af", hover_color="#6b7280").pack(side="left", padx=10)
+
+        ctk.CTkButton(botones_frame, text="+ Nuevo",
+                      command=self.controller.mostrar_carga,
+                      width=100, height=35, corner_radius=15,
+                      fg_color="#10b981", hover_color="#059669",
+                      font=ctk.CTkFont(size=14, weight="bold")).pack(side="left", padx=10)
 
     def mostrar_detalle(self, carpeta):
         archivos = list(carpeta.glob("*"))
         archivos_str = "\n".join([f"  - {a.name}" for a in archivos[:8]])
         if len(archivos) > 8:
-            archivos_str += f"\n  ... y {len(archivos)-8} más"
+            archivos_str += f"\n  ... y {len(archivos) - 8} más"
+
         invertida = next((f for f in archivos if "invertida" in f.name.lower()), None)
         grises = next((f for f in archivos if "grises" in f.name.lower()), None)
-        invertida_info = f"\n🖼️ Invertida: {invertida.name}" if invertida else ""
-        grises_info = f"\n🌫️ Grises: {grises.name}" if grises else ""
-        messagebox.showinfo("Detalles", f"📁 {carpeta.name}\n\n📅 Fecha: {formatear_fecha(carpeta.stat().st_mtime)}\n📄 Archivos: {len(archivos)}{invertida_info}{grises_info}\n\n📋 Contenido:\n{archivos_str}")
+
+        invertida_info = f"\n🖼️ Imagen invertida: {invertida.name}" if invertida else ""
+        grises_info = f"\n🌫️ Escala de grises: {grises.name}" if grises else ""
+
+        messagebox.showinfo(
+            "Detalles del Expediente",
+            f"📁 {carpeta.name}\n\n"
+            f"📅 Fecha: {formatear_fecha(carpeta.stat().st_mtime)}\n"
+            f"📄 Archivos: {len(archivos)}{invertida_info}{grises_info}\n\n"
+            f"📋 Contenido:\n{archivos_str}"
+        )
+
+    def confirmar_eliminacion(self, carpeta):
+        """Diálogo de confirmación de eliminación"""
+        dialog = ctk.CTkToplevel(self)
+        dialog.title("Confirmar Eliminación")
+        dialog.geometry("400x180")
+        dialog.transient(self)
+        dialog.grab_set()
+        dialog.resizable(False, False)
+
+        # Centrar ventana
+        dialog.update_idletasks()
+        x = (dialog.winfo_screenwidth() // 2) - (400 // 2)
+        y = (dialog.winfo_screenheight() // 2) - (180 // 2)
+        dialog.geometry(f"+{x}+{y}")
+
+        # Frame principal
+        frame = ctk.CTkFrame(dialog, fg_color="transparent")
+        frame.pack(expand=True, fill="both", padx=20, pady=20)
+
+        # Título
+        ctk.CTkLabel(frame, text="Confirmar Eliminación",
+                     font=ctk.CTkFont(size=16, weight="bold")).pack(pady=(0, 10))
+
+        # Mensaje
+        ctk.CTkLabel(frame, text="¿Estás seguro de que deseas eliminar este expediente?",
+                     font=ctk.CTkFont(size=12)).pack()
+        ctk.CTkLabel(frame, text="Esta acción no se puede deshacer.",
+                     font=ctk.CTkFont(size=12)).pack(pady=(5, 15))
+
+        # Botones
+        btn_frame = ctk.CTkFrame(frame, fg_color="transparent")
+        btn_frame.pack()
+
+        ctk.CTkButton(btn_frame, text="Cancelar", width=100,
+                      command=dialog.destroy).pack(side="left", padx=10)
+
+        ctk.CTkButton(btn_frame, text="Confirmar", width=100,
+                      fg_color="#ef4444", hover_color="#dc2626",
+                      command=lambda: self.controller.eliminar_expediente(carpeta, dialog)).pack(side="left", padx=10)

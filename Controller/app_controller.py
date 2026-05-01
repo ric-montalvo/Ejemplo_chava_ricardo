@@ -72,9 +72,16 @@ class AppController:
                 img_gris, _ = self.imagenes_procesadas[1]
                 self.file_manager.guardar_imagen_grises(img_gris, carpeta, nombre_paciente)
 
-            progress.destroy()
-            # Mostrar visor
-            VisorView(self.root, self.imagenes_procesadas, nombre_paciente, self.on_visor_cerrado)
+                # 6. Cerrar overlay
+                progress.destroy()
+
+                # ✅ 7. PRIMERO: Mostrar Expedientes
+                self.mostrar_expedientes()
+
+                # ✅ 8. LUEGO: Abrir el visor encima (como ventana emergente)
+                visor = VisorView(self.root, self.imagenes_procesadas, nombre_paciente)
+                visor.focus_force()  # Traer al frente
+
         except Exception as e:
             progress.destroy()
             messagebox.showerror("Error", f"Error al procesar:\n{str(e)}")
@@ -86,6 +93,22 @@ class AppController:
             self.mostrar_carga()
         elif destino == "expedientes":
             self.mostrar_expedientes()
+
+    # controller/app_controller.py (agregar este método)
+
+    def eliminar_expediente(self, carpeta, dialog=None):
+        """Elimina la carpeta del expediente y cierra el diálogo"""
+        try:
+            import shutil
+            shutil.rmtree(carpeta)
+            if dialog:
+                dialog.destroy()
+            self.mostrar_expedientes()
+            messagebox.showinfo("Éxito", "Expediente eliminado correctamente")
+        except Exception as e:
+            if dialog:
+                dialog.destroy()
+            messagebox.showerror("Error", f"No se pudo eliminar:\n{str(e)}")
 
     def run(self):
         self.root.mainloop()
