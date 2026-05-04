@@ -110,5 +110,10 @@ class AppController:
                 dialog.destroy()
             messagebox.showerror("Error", f"No se pudo eliminar:\n{str(e)}")
 
+    # En AppController, agregar:
+    def obtener_expedientes(self):
+        """Devuelve la lista actual de expedientes (carpetas)"""
+        return self.file_manager.listar_expedientes()
+
     def run(self):
         self.root.mainloop()
