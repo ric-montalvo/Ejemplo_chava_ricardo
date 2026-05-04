@@ -2,6 +2,8 @@
 import customtkinter as ctk
 from tkinter import filedialog
 from PIL import Image
+import os
+from tkinter import messagebox
 
 class CargaView(ctk.CTkFrame):
     def __init__(self, parent, controller):
@@ -26,8 +28,28 @@ class CargaView(ctk.CTkFrame):
         form_frame.pack(expand=True)
 
         ctk.CTkLabel(form_frame, text="Nombre del Paciente", font=ctk.CTkFont(size=14, weight="bold")).pack(anchor="w")
-        self.nombre_entry = ctk.CTkEntry(form_frame, placeholder_text="Ej: Juan Pérez", width=400, height=40,
-                                         corner_radius=10, border_width=1, border_color="#d1d5db")
+
+        self.nombre_entry = ctk.CTkEntry(
+            form_frame,
+            placeholder_text="Ej: Juan Pérez",
+            width=400,
+            height=40,
+            corner_radius=10,
+            border_width=1,
+            border_color="#d1d5db"
+        )
+        self.nombre_entry.pack(pady=(5, 20))
+
+        # Validación: solo letras y espacios
+        def validar_nuevo_caracter(texto):
+            # Permitir solo letras (incluyendo acentos y ñ) y espacios
+            if texto == "" or all(c.isalpha() or c.isspace() for c in texto):
+                return True
+            return False
+
+        vcmd = (self.register(validar_nuevo_caracter), '%P')
+        self.nombre_entry.configure(validate="key", validatecommand=vcmd)
+
         self.nombre_entry.pack(pady=(5, 20))
         self.nombre_entry.bind('<KeyRelease>', self.validar)
 
@@ -60,10 +82,17 @@ class CargaView(ctk.CTkFrame):
                       width=100, height=35, corner_radius=15, fg_color="#9ca3af").pack(pady=10)
 
     def seleccionar_imagen(self):
-        ruta = filedialog.askopenfilename(filetypes=[("Imágenes", "*.jpg *.jpeg *.png *.bmp")])
+        ruta = filedialog.askopenfilename(
+            filetypes=[("Imágenes JPG", "*.jpg *.jpeg")]
+        )
         if ruta:
+            # Validar extensión (por si el filtro falla)
+            ext = os.path.splitext(ruta)[1].lower()
+            if ext not in ('.jpg', '.jpeg'):
+                messagebox.showerror("Formato no válido", "Solo se permiten archivos JPG o JPEG.")
+                return
             self.ruta_imagen = ruta
-            self.lbl_info.configure(text=f"✅ {ruta.split('/')[-1]}", text_color="#10b981")
+            self.lbl_info.configure(text=f"✅ {os.path.basename(ruta)}", text_color="#10b981")
             self.area_carga_frame.pack_forget()
             self.preview_frame.pack(pady=10)
             self.btn_remover.pack(pady=5)
