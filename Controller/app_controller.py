@@ -238,5 +238,9 @@ class AppController:
             progress.destroy()
             messagebox.showerror("Error", f"Error al procesar:\n{str(e)}")
 
+    def ver_detalles(self, carpeta):
+        from View.detalles_view import DetallesView
+        DetallesView(self.root, self, carpeta)
+
     def run(self):
         self.root.mainloop()

@@ -149,7 +149,7 @@ class ExpedientesView(ctk.CTkFrame):
         btn_ver = ctk.CTkButton(botones_card, text="Ver Detalles", width=110, height=35,
                                 corner_radius=15, fg_color="#3b82f6",
                                 hover_color="#2563eb",
-                                command=lambda c=carpeta: self.mostrar_detalle(c))
+                                command=lambda c=carpeta: self.controller.ver_detalles(c))
         btn_ver.pack(side="left", padx=5)
 
         if nivel == 0:
