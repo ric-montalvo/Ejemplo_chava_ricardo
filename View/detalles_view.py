@@ -4,6 +4,7 @@ from tkinter import filedialog, messagebox
 from PIL import Image
 from pathlib import Path
 from utils.helpers import formatear_fecha
+import csv
 
 class DetallesView(ctk.CTkToplevel):
     def __init__(self, parent, controller, carpeta_raiz):
@@ -34,8 +35,8 @@ class DetallesView(ctk.CTkToplevel):
         # Contenedor principal para contenido (dos columnas: izquierda info+tabla, derecha imagen)
         self.main_frame = ctk.CTkFrame(self, fg_color="transparent")
         self.main_frame.grid(row=1, column=0, sticky="nsew", padx=20, pady=10)
-        self.main_frame.grid_columnconfigure(0, weight=3)   # izquierda
-        self.main_frame.grid_columnconfigure(1, weight=2)   # derecha
+        self.main_frame.grid_columnconfigure(0, weight=5)   # izquierda
+        self.main_frame.grid_columnconfigure(0, weight=1)   # derecha
         self.main_frame.grid_rowconfigure(0, weight=1)
 
         # Panel izquierdo (información + tabla)
@@ -119,8 +120,9 @@ class DetallesView(ctk.CTkToplevel):
 
         # Resaltar visualmente la carpeta activa en la lista de subcarpetas (opcional)
         self._marcar_activo_en_lista()
+        self._mostrar_tabla(carpeta)
 
-    # ---------- Construcción de la lista horizontal de subcarpetas ----------
+        # ---------- Construcción de la lista horizontal de subcarpetas ----------
     def _actualizar_lista_subcarpetas(self):
         # Limpiar contenedor
         for widget in self.subcarpetas_container.winfo_children():
@@ -178,12 +180,46 @@ class DetallesView(ctk.CTkToplevel):
 
     # ---------- Exportar CSV ----------
     def _descargar_csv(self):
+        import os
         csv_path = self.carpeta_actual / "metricas.csv"
         if not csv_path.exists():
             messagebox.showerror("Error", "CSV no encontrado en esta carpeta")
             return
-        destino = filedialog.asksaveasfilename(defaultextension=".csv", filetypes=[("CSV", "*.csv")])
+        descargas = os.path.join(os.path.expanduser("~"), "Downloads")
+        destino = filedialog.asksaveasfilename(
+            defaultextension=".csv",
+            filetypes=[("CSV files", "*.csv")],
+            initialdir=descargas,
+            initialfile=f"{self.carpeta_actual.name}_metricas.csv"
+        )
         if destino:
             import shutil
             shutil.copy2(csv_path, destino)
-            messagebox.showinfo("Éxito", "CSV exportado")
+            messagebox.showinfo("Éxito", f"CSV exportado a {destino}")
+
+    def _mostrar_tabla(self, carpeta: Path):
+        # Limpiar frame
+        for widget in self.tabla_frame.winfo_children():
+            widget.destroy()
+
+        csv_path = carpeta / "metricas.csv"
+        if not csv_path.exists():
+            ctk.CTkLabel(self.tabla_frame, text="No hay datos de métricas", text_color="gray").pack(pady=20)
+            return
+
+        with open(csv_path, 'r', encoding='utf-8') as f:
+            reader = csv.reader(f)
+            headers = next(reader)
+            # Cabecera
+            header_frame = ctk.CTkFrame(self.tabla_frame, fg_color="#e2e8f0", corner_radius=5)
+            header_frame.pack(fill="x", pady=(0, 2))
+            for col, header in enumerate(headers):
+                ctk.CTkLabel(header_frame, text=header, font=ctk.CTkFont(weight="bold", size=12),
+                             width=100, anchor="w").grid(row=0, column=col, padx=5, pady=5)
+
+            # Filas
+            for row in reader:
+                row_frame = ctk.CTkFrame(self.tabla_frame, fg_color="transparent")
+                row_frame.pack(fill="x", pady=1)
+                for col, value in enumerate(row):
+                    ctk.CTkLabel(row_frame, text=value, width=100, anchor="w").grid(row=0, column=col, padx=5, pady=2)

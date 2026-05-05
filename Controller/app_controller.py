@@ -1,10 +1,10 @@
 # controller/app_controller.py
-from pathlib import Path
-import sys
 import os
+import sys
+from pathlib import Path
 from tkinter import messagebox
-import customtkinter as ctk
-
+import csv
+import random
 sys.path.append(os.path.dirname(os.path.dirname(__file__)))
 
 from Model.Procesador_imagen import Procesador_imagen
@@ -12,7 +12,6 @@ from Model.file_manager import FileManager
 from View.main_window import MainWindow
 from View.menu_view import MenuView
 from View.carga_view import CargaView
-from View.visor_view import VisorView
 from View.expedientes_view import ExpedientesView
 
 class AppController:
@@ -124,7 +123,6 @@ class AppController:
     def mostrar_dialogo_duplicado(self, nombre_paciente, ruta_imagen, carpeta_existente):
         """Muestra el diálogo con tres opciones: cancelar, subcarpeta, sustituir"""
         import customtkinter as ctk
-        from tkinter import messagebox
 
         dialog = ctk.CTkToplevel(self.root)
         dialog.title("Paciente Existente")
@@ -226,7 +224,7 @@ class AppController:
             if len(self.imagenes_procesadas) >= 2:
                 img_gris, _ = self.imagenes_procesadas[1]
                 self.file_manager.guardar_imagen_grises(img_gris, carpeta_destino, nombre_paciente)
-
+                self.generar_csv_mock(carpeta_destino, nombre_base)
             progress.destroy()
 
             # Mostrar expedientes y luego visor
@@ -241,6 +239,35 @@ class AppController:
     def ver_detalles(self, carpeta):
         from View.detalles_view import DetallesView
         DetallesView(self.root, self, carpeta)
+
+    def generar_csv_mock(self, carpeta: Path, nombre_base: str):
+        """Genera un archivo metricas.csv con datos simulados (32 dientes, nomenclatura Palmer)"""
+        csv_path = carpeta / "metricas.csv"
+        # Lista completa de dientes según nomenclatura Palmer (1-8 por cuadrante)
+        dientes = [11, 12, 13, 14, 15, 16, 17, 18,
+                   21, 22, 23, 24, 25, 26, 27, 28,
+                   31, 32, 33, 34, 35, 36, 37, 38,
+                   41, 42, 43, 44, 45, 46, 47, 48]
+        metricas = []
+        for diente in dientes:
+            inclinacion = round(random.uniform(0, 45), 1)
+            corona_raiz = round(random.uniform(0.5, 2.0), 2)
+            longitud_raiz = random.randint(30, 60)
+            diastema = round(random.uniform(0, 5), 1)
+            if 11 <= diente <= 18:
+                ubicacion = "Superior Derecho"
+            elif 21 <= diente <= 28:
+                ubicacion = "Superior Izquierdo"
+            elif 31 <= diente <= 38:
+                ubicacion = "Inferior Izquierdo"
+            else:
+                ubicacion = "Inferior Derecho"
+            metricas.append([diente, inclinacion, corona_raiz, longitud_raiz, diastema, ubicacion])
+
+        with open(csv_path, 'w', newline='', encoding='utf-8') as f:
+            writer = csv.writer(f)
+            writer.writerow(["Pieza", "Inclinacion", "CoronaRaiz", "LongitudRaiz", "Diastema", "Ubicacion"])
+            writer.writerows(metricas)
 
     def run(self):
         self.root.mainloop()
