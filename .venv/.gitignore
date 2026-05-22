@@ -1,0 +1,22 @@
+# Python
+__pycache__/
+*.py[cod]
+*.pyc
+
+# Entorno virtual
+.venv/
+venv/
+env/
+
+# Datos locales generados
+expedientes/
+temp_uploads/
+resultados_eel/
+
+# IDE
+.idea/
+.vscode/
+
+# Archivos del sistema
+.DS_Store
+Thumbs.db
