@@ -2,6 +2,7 @@ import os
 import cv2
 import numpy as np
 from PIL import Image, ImageOps
+import time
 # Model/Procesador_imagen.py
 # Descripción: Modelo que contiene la lógica de negocio (procesamiento de imágenes).
 #              Actualmente solo hace: validar extensión, convertir a grises, invertir grises,
@@ -16,12 +17,25 @@ from PIL import Image, ImageOps
 # La vista espera ese formato. Si se cambia el modelo, hay que actualizar la vista.
 
 class Procesador_imagen:
+    def __init__(self):
+        self.cancelar = False  # Bandera para cancelar
+
+    def cancelar_procesamiento(self):
+        """Método para cancelar el procesamiento desde fuera"""
+        self.cancelar = True
+
     def procesar_pipeline(self, path):
         _, ext = os.path.splitext(path)
         if ext.lower() not in ['.jpg', '.jpeg', '.bmp']:
             raise ValueError("Restricción de entrada: El archivo debe ser un JPG o BMP.")
 
         try:
+            # SIMULAR PROCESAMIENTO DE 8 SEGUNDOS (pero revisando cancelación)
+            for _ in range(80):  # 80 * 0.1 = 8 segundos
+                if self.cancelar:
+                    raise Exception("CANCELADO")  # Usamos Exception genérica
+                time.sleep(0.1)
+
             #Lectura
             img_original = Image.open(path)
 
@@ -44,8 +58,12 @@ class Procesador_imagen:
                 (img_gris, "2. Escala de Grises"),
                 (img_invertida, "3. Inversión de grises")
             ]
+
         except Exception as e:
-            raise RuntimeError(f"No se pudo procesar la imagen: {e}")
+            if str(e) == "CANCELADO":
+                raise Exception("Procesamiento cancelado por el usuario")
+            else:
+                raise RuntimeError(f"No se pudo procesar la imagen: {e}")
 
 
     #funcion de ejemplo, el procesamiento no estara en esta clase

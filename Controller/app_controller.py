@@ -5,6 +5,12 @@ from pathlib import Path
 from tkinter import messagebox
 import csv
 import random
+import threading
+import customtkinter as ctk
+import threading
+import shutil
+from View.visor_view import VisorView
+
 sys.path.append(os.path.dirname(os.path.dirname(__file__)))
 
 from Model.Procesador_imagen import Procesador_imagen
@@ -201,7 +207,9 @@ class AppController:
         import customtkinter as ctk
         from tkinter import messagebox
         from View.visor_view import VisorView
-
+        self.procesamiento_cancelado = False
+        self.modelo.cancelar = False
+        self.nombre_actual = nombre_paciente
         # Overlay de procesamiento
         progress = ctk.CTkToplevel(self.root)
         progress.title("Procesando")
@@ -214,27 +222,53 @@ class AppController:
         bar = ctk.CTkProgressBar(progress, width=300, mode="indeterminate")
         bar.pack(pady=20)
         bar.start()
+        # Botón Cancelar (rojo)
+        btn_cancelar = ctk.CTkButton(
+            progress,
+            text="Cancelar",
+            width=120,
+            height=30,
+            fg_color="#ef4444",
+            hover_color="#dc2626",
+            state="disabled",
+            command=lambda: self.cancelar_procesamiento(progress, carpeta_destino)
+        )
+        btn_cancelar.pack(pady=10)
+        self.root.after(500, lambda: btn_cancelar.configure(state="normal"))
+
         self.root.update()
 
-        try:
-            # Llamada al modelo de Montoya
-            self.imagenes_procesadas = self.modelo.procesar_pipeline(str(ruta_copia))
+        # Variable para saber si se canceló
+        self.procesamiento_cancelado = False
 
-            # Guardar imagen en grises
-            if len(self.imagenes_procesadas) >= 2:
-                img_gris, _ = self.imagenes_procesadas[1]
-                self.file_manager.guardar_imagen_grises(img_gris, carpeta_destino, nombre_paciente)
-                self.generar_csv_mock(carpeta_destino, nombre_base)
-            progress.destroy()
+        def procesar_en_hilo():
+            try:
+                # Llamada al modelo de Montoya (ahora con sleep de 8s)
+                self.imagenes_procesadas = self.modelo.procesar_pipeline(str(ruta_copia))
 
-            # Mostrar expedientes y luego visor
-            self.mostrar_expedientes()
-            visor = VisorView(self.root, self.imagenes_procesadas, nombre_paciente)
-            visor.focus_force()
+                # Si no se canceló, continuar
+                if not self.procesamiento_cancelado:
+                    # Guardar imagen en grises
+                    if len(self.imagenes_procesadas) >= 2:
+                        img_gris, _ = self.imagenes_procesadas[1]
+                        self.file_manager.guardar_imagen_grises(img_gris, carpeta_destino, nombre_paciente)
+                        self.generar_csv_mock(carpeta_destino, nombre_base)
 
-        except Exception as e:
-            progress.destroy()
-            messagebox.showerror("Error", f"Error al procesar:\n{str(e)}")
+                    # Cerrar overlay y continuar en el hilo principal
+                    self.root.after(0, self._finalizar_procesamiento_exitoso, progress)
+
+            except Exception as e:
+                if str(e) == "Procesamiento cancelado por el usuario":
+                    self.procesamiento_cancelado = True
+                    self.root.after(0, self._finalizar_procesamiento_cancelado, progress, carpeta_destino)
+                else:
+                    if not self.procesamiento_cancelado:
+                        self.root.after(0, self._finalizar_procesamiento_con_error, progress, str(e))
+
+        # Iniciar el hilo
+        hilo = threading.Thread(target=procesar_en_hilo)
+        hilo.daemon = True
+        hilo.start()
 
     def ver_detalles(self, carpeta):
         from View.detalles_view import DetallesView
@@ -268,6 +302,40 @@ class AppController:
             writer = csv.writer(f)
             writer.writerow(["Pieza", "Inclinacion", "CoronaRaiz", "LongitudRaiz", "Diastema", "Ubicacion"])
             writer.writerows(metricas)
+
+    def cancelar_procesamiento(self, progress_window, carpeta_destino):
+        """Cancela el procesamiento: marca bandera y limpia la carpeta"""
+        self.procesamiento_cancelado = True
+        self.modelo.cancelar_procesamiento()  # Llama al método del modelo
+        # Eliminar la carpeta (si existe y está vacía o con archivos)
+        try:
+            if carpeta_destino.exists():
+                shutil.rmtree(carpeta_destino)
+        except:
+            pass
+        progress_window.destroy()
+        messagebox.showinfo("Cancelado",
+                            "El procesamiento ha sido cancelado.\nLa carpeta del paciente ha sido eliminada.")
+        # Resetear banderas para futuros procesamientos
+        self.procesamiento_cancelado = False
+        self.modelo.cancelar = False  # Acceder directamente al atributo
+
+    def _finalizar_procesamiento_exitoso(self, progress_window):
+        progress_window.destroy()
+        self.mostrar_expedientes()
+        visor = VisorView(self.root, self.imagenes_procesadas, self.nombre_actual)
+        visor.focus_force()
+
+    def _finalizar_procesamiento_cancelado(self, progress_window, carpeta_destino):
+        progress_window.destroy()
+        # La carpeta ya fue eliminada en cancelar_procesamiento
+        messagebox.showinfo("Cancelado", "El procesamiento se canceló. La carpeta no se creó.")
+        self.procesamiento_cancelado = False
+        self.modelo.cancelar = False
+
+    def _finalizar_procesamiento_con_error(self, progress_window, mensaje_error):
+        progress_window.destroy()
+        messagebox.showerror("Error", f"Error al procesar:\n{mensaje_error}")
 
     def run(self):
         self.root.mainloop()
