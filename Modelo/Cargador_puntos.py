@@ -19,60 +19,6 @@ class Cargador_puntos:
             return self._puntos_fijos()
 
 
-    #Metodo si se lee sin compilar en exe
-    """
-    def _leer_desde_csv(self, nombre):
-        base_dir = Path(__file__).parent.parent
-        csv_path = base_dir / "diastemas.csv"
-        if not csv_path.exists():
-            raise FileNotFoundError(f"No se encuentra {csv_path}")
-
-        maxilar = []
-        mandibular = []
-
-        # Usar utf-8-sig para eliminar posibles BOM
-        with open(csv_path, 'r', encoding='utf-8-sig') as f:
-            # Detectar delimitador automáticamente (puede ser ',' o '\t')
-            primera_linea = f.readline()
-            f.seek(0)
-            if '\t' in primera_linea:
-                delim = '\t'
-            elif ',' in primera_linea:
-                delim = ','
-            else:
-                delim = None  # fallback
-            reader = csv.DictReader(f, delimiter=delim)
-            # Limpiar nombres de columnas (quitar espacios)
-            reader.fieldnames = [col.strip() for col in reader.fieldnames]
-
-            # Verificar que la columna 'paciente' exista (caso insensible)
-            col_paciente = None
-            for col in reader.fieldnames:
-                if col.lower() == 'paciente':
-                    col_paciente = col
-                    break
-            if col_paciente is None:
-                raise KeyError(f"No se encontró columna 'paciente'. Columnas disponibles: {reader.fieldnames}")
-
-            for row in reader:
-                if row[col_paciente].strip().upper() != nombre.upper():
-                    continue
-                pos = row['posicion'].strip().lower()
-                izq = self._parsear_punto(row['inicioBordeIzquierdo'])
-                der = self._parsear_punto(row['inicioBordeDerecho'])
-                if pos == 'maxilar':
-                    maxilar.append(izq)
-                    maxilar.append(der)
-                elif pos == 'mandibula':
-                    mandibular.append(izq)
-                    mandibular.append(der)
-
-        if not maxilar and not mandibular:
-            raise ValueError(f"No se encontraron puntos para '{nombre}' en el CSV")
-
-        return maxilar, mandibular
-    """
-
     #Metodo cuando esta en exe
     def _leer_desde_csv(self, nombre):
         import sys
