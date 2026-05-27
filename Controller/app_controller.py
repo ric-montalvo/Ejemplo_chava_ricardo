@@ -13,7 +13,8 @@ from View.visor_view import VisorView
 
 sys.path.append(os.path.dirname(os.path.dirname(__file__)))
 
-from Model.Procesador_imagen import Procesador_imagen
+from Modelo.Orquestador import Orquestador
+
 from Model.file_manager import FileManager
 from View.main_window import MainWindow
 from View.menu_view import MenuView
@@ -29,7 +30,7 @@ class AppController:
         else:
             base = Path(__file__).parent.parent
         self.file_manager = FileManager(base)
-        self.modelo = Procesador_imagen()   # ← aquí se reemplazará con el pipeline real
+        self.modelo = Orquestador()   # ← aquí se reemplazará con el pipeline real
 
         self.nombre_actual = ""
         self.imagenes_procesadas = []
@@ -203,7 +204,45 @@ class AppController:
             messagebox.showerror("Error", f"No se pudo sustituir la imagen:\n{str(e)}")
 
     def ejecutar_procesamiento(self, nombre_paciente, ruta_copia, carpeta_destino, nombre_base):
-        """Realiza el procesamiento de la imagen (overlay, modelo, guardar grises, mostrar expedientes y visor)"""
+        """Realiza el procesamiento real con Orquestador"""
+        import customtkinter as ctk
+        from tkinter import messagebox
+        from View.visor_view import VisorView
+
+        self.nombre_actual = nombre_paciente
+
+        # Overlay de procesamiento (sin botón cancelar, o deshabilitado)
+        progress = ctk.CTkToplevel(self.root)
+        progress.title("Procesando")
+        progress.geometry("450x200")
+        progress.transient(self.root)
+        progress.grab_set()
+
+        ctk.CTkLabel(progress, text="Procesando imagen...", font=ctk.CTkFont(size=18, weight="bold")).pack(pady=30)
+        ctk.CTkLabel(progress, text=f"Analizando radiografía dental de {nombre_paciente}").pack(pady=5)
+        bar = ctk.CTkProgressBar(progress, width=300, mode="indeterminate")
+        bar.pack(pady=20)
+        bar.start()
+
+        self.root.update()
+
+        def procesar_en_hilo():
+            try:
+                # Llamada al pipeline real de Montoya
+                self.imagenes_procesadas = self.modelo.procesar_pipeline(str(ruta_copia))
+
+                # Si todo salió bien, cerrar overlay y mostrar resultados
+                self.root.after(0, self._finalizar_procesamiento_exitoso, progress)
+
+            except Exception as e:
+                self.root.after(0, self._finalizar_procesamiento_con_error, progress, str(e))
+
+        hilo = threading.Thread(target=procesar_en_hilo)
+        hilo.daemon = True
+        hilo.start()
+
+    """ANTIGUO Realiza el procesamiento de la imagen (overlay, modelo, guardar grises, mostrar expedientes y visor)
+    def ejecutar_procesamiento(self, nombre_paciente, ruta_copia, carpeta_destino, nombre_base):
         import customtkinter as ctk
         from tkinter import messagebox
         from View.visor_view import VisorView
@@ -269,6 +308,7 @@ class AppController:
         hilo = threading.Thread(target=procesar_en_hilo)
         hilo.daemon = True
         hilo.start()
+        """
 
     def ver_detalles(self, carpeta):
         from View.detalles_view import DetallesView
@@ -323,6 +363,11 @@ class AppController:
     def _finalizar_procesamiento_exitoso(self, progress_window):
         progress_window.destroy()
         self.mostrar_expedientes()
+        # Opcional: guardar la imagen final (la última de la lista)
+        if self.imagenes_procesadas:
+            img_final, _ = self.imagenes_procesadas[-1]
+            # Puedes guardarla en la carpeta del paciente si lo deseas
+            # img_final.save(carpeta_destino / f"{nombre_base}_final.png")
         visor = VisorView(self.root, self.imagenes_procesadas, self.nombre_actual)
         visor.focus_force()
 
