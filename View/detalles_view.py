@@ -4,6 +4,8 @@ from tkinter import filedialog, messagebox
 from PIL import Image
 from pathlib import Path
 from utils.helpers import formatear_fecha
+from View.visor_view import VisorView
+
 import csv
 
 class DetallesView(ctk.CTkToplevel):
@@ -16,6 +18,7 @@ class DetallesView(ctk.CTkToplevel):
         self.geometry("1000x750")
         self.transient(parent)
         self.grab_set()
+        self.visor_ventana = None
 
         self._crear_widgets()
         self._cargar_datos(self.carpeta_actual)
@@ -71,6 +74,7 @@ class DetallesView(ctk.CTkToplevel):
         ctk.CTkLabel(right_img_frame, text="Radiografía Procesada", font=ctk.CTkFont(size=16, weight="bold")).pack(pady=10)
         self.imagen_label = ctk.CTkLabel(right_img_frame, text="")
         self.imagen_label.pack(expand=True, padx=10, pady=10)
+        self.imagen_label.bind("<Button-1>", self.abrir_visor)
 
         # ---------- Tabla (scrollable) ----------
         self.tabla_frame = ctk.CTkScrollableFrame(self.main_frame, height=350, fg_color="transparent")
@@ -85,6 +89,34 @@ class DetallesView(ctk.CTkToplevel):
         self.sub_scroll.pack(fill="x", pady=5)
         self.subcarpetas_container = self.sub_scroll
 
+    def abrir_visor(self, event=None):
+        if self.visor_ventana is not None and self.visor_ventana.winfo_exists():
+            self.visor_ventana.lift()
+            return
+
+        archivos = list(self.carpeta_actual.glob("*"))
+
+        # Buscar cada tipo de imagen
+        original_path = next((f for f in archivos if "_original" in f.name), None)
+        puntos_path = next((f for f in archivos if "Puntos iniciales" in f.name), None)  # ← espacio
+        renderizada_path = next((f for f in archivos if "_Renderizada" in f.name), None)
+
+        imagenes = []
+        if original_path:
+            imagenes.append((Image.open(original_path), "Original sin procesar"))
+        if puntos_path:
+            imagenes.append((Image.open(puntos_path), "Puntos iniciales"))
+        if renderizada_path:
+            imagenes.append((Image.open(renderizada_path), "Renderizada final"))
+
+        if not imagenes:
+            messagebox.showinfo("Información", "No hay imágenes para mostrar")
+            return
+
+        nombre_paciente = self.carpeta_actual.name
+        self.visor_ventana = VisorView(self, imagenes, nombre_paciente, on_volver=None)
+        self.visor_ventana.bind("<Destroy>", lambda e: setattr(self, 'visor_ventana', None))
+
     # ---------- Carga de datos ----------
     def _cargar_datos(self, carpeta: Path):
         self.carpeta_actual = carpeta
@@ -95,17 +127,20 @@ class DetallesView(ctk.CTkToplevel):
         num_piezas = len([f for f in archivos if "invertida" in f.name]) * 8
         self.piezas_label.configure(text=f"{num_piezas} piezas dentales segmentadas")
 
-
         # Cargar imagen - buscar _Renderizada.bmp o _Renderizada.jpg
         renderizada_path = next((f for f in archivos if "_Renderizada" in f.name), None)
+        self.ruta_renderizada_actual = renderizada_path  # guardar para el visor
         if renderizada_path and renderizada_path.exists():
             img = Image.open(renderizada_path)
+            self.imagen_renderizada_pil = img  # guardar también la imagen PIL
             max_size = (250, 250)
             img.thumbnail(max_size, Image.Resampling.LANCZOS)
             ctk_img = ctk.CTkImage(light_image=img, dark_image=img, size=(img.width, img.height))
             self.imagen_label.configure(image=ctk_img, text="")
             self.imagen_label.image = ctk_img
         else:
+            self.ruta_renderizada_actual = None
+            self.imagen_renderizada_pil = None
             self.imagen_label.configure(text="Sin imagen procesada", text_color="gray")
 
         self._mostrar_tabla(carpeta)
@@ -176,6 +211,10 @@ class DetallesView(ctk.CTkToplevel):
     def _cambiar_carpeta_activa(self, nueva_carpeta: Path):
         if nueva_carpeta == self.carpeta_actual:
             return
+        # Cerrar visor si está abierto
+        if self.visor_ventana is not None and self.visor_ventana.winfo_exists():
+            self.visor_ventana.destroy()
+            self.visor_ventana = None
         self._cargar_datos(nueva_carpeta)
         self._actualizar_lista_subcarpetas()
 

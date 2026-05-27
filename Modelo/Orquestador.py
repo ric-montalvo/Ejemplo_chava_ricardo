@@ -109,7 +109,7 @@ class Orquestador:
             img_general = Image.fromarray(np_general)
 
             # Guardado opcional (comentado por defecto)
-            # self.almacenar.guardar_resultado(path, np_iniciales, "Puntos iniciales")
+            self.almacenar.guardar_resultado(path, np_iniciales, "Puntos iniciales")
 
             bordes_cuello = self.seg.seguimiento_hacia_oclusion(
                 np_grises, maxilar, mandibular,
