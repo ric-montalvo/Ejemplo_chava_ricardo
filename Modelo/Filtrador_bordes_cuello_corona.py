@@ -133,8 +133,9 @@ class Filtrador_bordes_cuello_corona:
         """Devuelve una lista de listas de los vertices en los bordes verticales"""
         vertices = []
         for borde in lista_bordes:
-            ptos = self.obtener_vertices_topologicos(borde)
-            vertices.append(ptos)
+            if (len(borde)>0):
+                ptos = self.obtener_vertices_topologicos(borde)
+                vertices.append(ptos)
         return vertices
 
     def obtener_vertices_topologicos(self, borde):

@@ -57,7 +57,7 @@ class AppController:
 
     # -------------------- Procesamiento principal --------------------
     def procesar_imagen(self, nombre_paciente, ruta_imagen):
-        """Punto de entrada: valida, crea carpeta y lanza procesamiento"""
+        """Punto de entrada: valida, extrae nombre del archivo, crea carpeta y lanza procesamiento"""
         if not nombre_paciente or not ruta_imagen:
             messagebox.showerror("Error", "Complete todos los campos")
             return
@@ -66,6 +66,9 @@ class AppController:
         if ext not in ('.jpg', '.jpeg'):
             messagebox.showerror("Formato no válido", "La imagen debe ser JPG o JPEG.")
             return
+
+        # Obtener el nombre base del archivo (sin extensión) para buscar en el CSV
+        nombre_archivo = Path(ruta_imagen).stem   # ej: "LAURA CAROLINA HERNANDEZ"
 
         nombre_limpio = self.file_manager.sanitizar_nombre_carpeta(nombre_paciente)
         carpeta_existente = self.file_manager.obtener_carpeta_por_nombre(nombre_limpio)
@@ -77,17 +80,20 @@ class AppController:
                 ext = Path(ruta_imagen).suffix
                 ruta_copia = carpeta_destino / f"{nombre_base}_original{ext}"
                 shutil.copy2(ruta_imagen, ruta_copia)
-                self.ejecutar_procesamiento(nombre_paciente, ruta_copia, carpeta_destino, nombre_base)
+                self.ejecutar_procesamiento(nombre_paciente, ruta_copia, carpeta_destino,
+                                            nombre_base, nombre_archivo)
             except Exception as e:
                 messagebox.showerror("Error", f"No se pudo crear la carpeta:\n{str(e)}")
         else:
-            self.mostrar_dialogo_duplicado(nombre_paciente, ruta_imagen, carpeta_existente)
+            self.mostrar_dialogo_duplicado(nombre_paciente, ruta_imagen, carpeta_existente, nombre_archivo)
 
-    def ejecutar_procesamiento(self, nombre_paciente, ruta_copia, carpeta_destino, nombre_base):
+    def ejecutar_procesamiento(self, nombre_paciente, ruta_copia, carpeta_destino,
+                               nombre_base, nombre_archivo):
         """Inicia el procesamiento en un hilo con botón de cancelar"""
         self.nombre_actual = nombre_paciente
         self.carpeta_temporal = carpeta_destino
         self.procesamiento_cancelado = False
+        self.nombre_archivo = nombre_archivo   # para pasarlo al modelo
 
         # Overlay de progreso
         progress = ctk.CTkToplevel(self.root)
@@ -113,12 +119,12 @@ class AppController:
         # Hilo de procesamiento
         def procesar():
             try:
-                resultados = self.modelo.procesar_pipeline(str(ruta_copia))
+                # Pasar el nombre del archivo (sin extensión) al orquestador
+                resultados = self.modelo.procesar_pipeline(str(ruta_copia), self.nombre_archivo)
                 if not self.procesamiento_cancelado:
                     self.imagenes_procesadas = resultados
                     self.root.after(0, self._finalizar_procesamiento_exitoso, progress)
                 else:
-                    # Cancelado: limpia carpeta y cierra overlay
                     self.root.after(0, self._limpiar_y_cerrar, progress, cancelado=True)
             except Exception as e:
                 if not self.procesamiento_cancelado:
@@ -130,27 +136,22 @@ class AppController:
         hilo.start()
 
     def _cancelar_procesamiento(self, progress_window):
-        """Marca la cancelación y cierra la ventana de progreso"""
         self.procesamiento_cancelado = True
         try:
             progress_window.destroy()
         except:
             pass
-        # Limpiar carpeta (si existe y está vacía o recién creada)
         self._limpiar_carpeta_expediente()
         messagebox.showinfo("Cancelado", "El procesamiento ha sido cancelado.\nNo se ha guardado ningún archivo.")
 
     def _limpiar_carpeta_expediente(self):
-        """Elimina la carpeta del expediente si está vacía o solo tiene la original"""
         if self.carpeta_temporal and self.carpeta_temporal.exists():
             try:
-                # Borrar toda la carpeta (estamos en cancelación, no queremos nada)
                 shutil.rmtree(self.carpeta_temporal)
             except Exception as e:
                 print(f"Error al limpiar carpeta: {e}")
 
     def _limpiar_y_cerrar(self, progress_window, cancelado=False):
-        """Cierra el overlay y si fue cancelado no hace nada más (ya se limpió)"""
         try:
             progress_window.destroy()
         except:
@@ -162,28 +163,27 @@ class AppController:
         except:
             pass
 
-        # Guardar la imagen final (última de la lista) como Renderizada
+        # Guardar la imagen final (última de la lista) como Renderizada.bmp
         if self.imagenes_procesadas and self.carpeta_temporal:
-            img_final, _ = self.imagenes_procesadas[-1]  # la última es la final
-            nombre_base = self.carpeta_temporal.name  # ej: pepegomez
+            img_final, _ = self.imagenes_procesadas[-1]   # la última es la imagen final
+            nombre_base = self.carpeta_temporal.name      # ej: "juan_perez"
             ruta_bmp = self.carpeta_temporal / f"{nombre_base}_Renderizada.bmp"
-            img_final.save(ruta_bmp)  # PIL guarda en BMP si la extensión es .bmp
+            img_final.save(ruta_bmp)                      # PIL guarda en BMP
 
         self.mostrar_expedientes()
         visor = VisorView(self.root, self.imagenes_procesadas, self.nombre_actual)
         visor.focus_force()
 
     def _finalizar_procesamiento_con_error(self, progress_window, mensaje_error):
-        """Muestra error y elimina carpeta si está vacía"""
         try:
             progress_window.destroy()
         except:
             pass
+        import traceback
+        traceback.print_exc()  # imprime en consola la línea exacta
         messagebox.showerror("Error", f"Error al procesar:\n{mensaje_error}")
-        self._limpiar_carpeta_si_vacia()
 
     def _limpiar_carpeta_si_vacia(self):
-        """Elimina la carpeta si no contiene ningún archivo (por si el error ocurrió antes de guardar)"""
         if self.carpeta_temporal and self.carpeta_temporal.exists():
             archivos = list(self.carpeta_temporal.glob("*"))
             if not archivos:
@@ -223,7 +223,7 @@ class AppController:
         nombre = re.sub(r'[^a-z_]', '', nombre)
         return nombre
 
-    def mostrar_dialogo_duplicado(self, nombre_paciente, ruta_imagen, carpeta_existente):
+    def mostrar_dialogo_duplicado(self, nombre_paciente, ruta_imagen, carpeta_existente, nombre_archivo):
         dialog = ctk.CTkToplevel(self.root)
         dialog.title("Paciente Existente")
         dialog.geometry("450x200")
@@ -254,11 +254,11 @@ class AppController:
 
         def opcion_subcarpeta():
             dialog.destroy()
-            self.procesar_con_subcarpeta(nombre_paciente, ruta_imagen, carpeta_existente)
+            self.procesar_con_subcarpeta(nombre_paciente, ruta_imagen, carpeta_existente, nombre_archivo)
 
         def opcion_sustituir():
             dialog.destroy()
-            self.procesar_con_sustitucion(nombre_paciente, ruta_imagen, carpeta_existente)
+            self.procesar_con_sustitucion(nombre_paciente, ruta_imagen, carpeta_existente, nombre_archivo)
 
         ctk.CTkButton(btn_frame, text="Cancelar", width=100, command=cerrar).pack(side="left", padx=10)
         ctk.CTkButton(btn_frame, text="Crear Subcarpeta", width=130, command=opcion_subcarpeta,
@@ -266,24 +266,26 @@ class AppController:
         ctk.CTkButton(btn_frame, text="Sustituir Imagen", width=130, command=opcion_sustituir,
                       fg_color="#3b82f6").pack(side="left", padx=10)
 
-    def procesar_con_subcarpeta(self, nombre_paciente, ruta_imagen, carpeta_base):
+    def procesar_con_subcarpeta(self, nombre_paciente, ruta_imagen, carpeta_base, nombre_archivo):
         try:
             carpeta_destino = self.file_manager.crear_subcarpeta(carpeta_base)
             nombre_base = carpeta_destino.name
             ext = Path(ruta_imagen).suffix
             ruta_copia = carpeta_destino / f"{nombre_base}_original{ext}"
             shutil.copy2(ruta_imagen, ruta_copia)
-            self.ejecutar_procesamiento(nombre_paciente, ruta_copia, carpeta_destino, nombre_base)
+            self.ejecutar_procesamiento(nombre_paciente, ruta_copia, carpeta_destino,
+                                        nombre_base, nombre_archivo)
         except Exception as e:
             messagebox.showerror("Error", f"No se pudo crear la subcarpeta:\n{str(e)}")
 
-    def procesar_con_sustitucion(self, nombre_paciente, ruta_imagen, carpeta_existente):
+    def procesar_con_sustitucion(self, nombre_paciente, ruta_imagen, carpeta_existente, nombre_archivo):
         try:
             nombre_base = carpeta_existente.name
             ext = Path(ruta_imagen).suffix
             ruta_copia = carpeta_existente / f"{nombre_base}_original{ext}"
             shutil.copy2(ruta_imagen, ruta_copia)
-            self.ejecutar_procesamiento(nombre_paciente, ruta_copia, carpeta_existente, nombre_base)
+            self.ejecutar_procesamiento(nombre_paciente, ruta_copia, carpeta_existente,
+                                        nombre_base, nombre_archivo)
         except Exception as e:
             messagebox.showerror("Error", f"No se pudo sustituir la imagen:\n{str(e)}")
 
@@ -294,16 +296,16 @@ class AppController:
 
     def generar_csv_mock(self, carpeta: Path, nombre_base: str):
         csv_path = carpeta / "metricas.csv"
-        dientes = [11, 12, 13, 14, 15, 16, 17, 18,
-                   21, 22, 23, 24, 25, 26, 27, 28,
-                   31, 32, 33, 34, 35, 36, 37, 38,
-                   41, 42, 43, 44, 45, 46, 47, 48]
+        dientes = [11,12,13,14,15,16,17,18,
+                   21,22,23,24,25,26,27,28,
+                   31,32,33,34,35,36,37,38,
+                   41,42,43,44,45,46,47,48]
         metricas = []
         for diente in dientes:
-            inclinacion = round(random.uniform(0, 45), 1)
-            corona_raiz = round(random.uniform(0.5, 2.0), 2)
-            longitud_raiz = random.randint(30, 60)
-            diastema = round(random.uniform(0, 5), 1)
+            inclinacion = round(random.uniform(0,45),1)
+            corona_raiz = round(random.uniform(0.5,2.0),2)
+            longitud_raiz = random.randint(30,60)
+            diastema = round(random.uniform(0,5),1)
             if 11 <= diente <= 18:
                 ubicacion = "Superior Derecho"
             elif 21 <= diente <= 28:
@@ -316,9 +318,8 @@ class AppController:
 
         with open(csv_path, 'w', newline='', encoding='utf-8') as f:
             writer = csv.writer(f)
-            writer.writerow(["Pieza", "Inclinacion", "CoronaRaiz", "LongitudRaiz", "Diastema", "Ubicacion"])
+            writer.writerow(["Pieza","Inclinacion","CoronaRaiz","LongitudRaiz","Diastema","Ubicacion"])
             writer.writerows(metricas)
 
-    # -------------------- Punto de entrada --------------------
     def run(self):
         self.root.mainloop()
