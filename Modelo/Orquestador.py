@@ -198,9 +198,10 @@ class Orquestador:
             # ==============================================================================================
 
             #Guardado final en BMP
-            ruta_base = self.almacenar.obtener_ruta_guardar(path, "_Renderizada")
-            ruta_bmp = os.path.splitext(ruta_base)[0] + ".bmp"
-            cv2.imwrite(ruta_bmp, np_img_final)
+            #Lo comente para cambiar el nombre de guardado
+           #ruta_base = self.almacenar.obtener_ruta_guardar(path, "_Renderizada")
+            #ruta_bmp = os.path.splitext(ruta_base)[0] + ".bmp"
+           # cv2.imwrite(ruta_bmp, np_img_final)
             img_sobel_ori = Image.fromarray(self.visualizador.mapear_a_visualizable(np_sobel))
 
             return [

@@ -157,11 +157,18 @@ class AppController:
             pass
 
     def _finalizar_procesamiento_exitoso(self, progress_window):
-        """Procesamiento terminó correctamente: muestra visor y actualiza expedientes"""
         try:
             progress_window.destroy()
         except:
             pass
+
+        # Guardar la imagen final (última de la lista) como Renderizada
+        if self.imagenes_procesadas and self.carpeta_temporal:
+            img_final, _ = self.imagenes_procesadas[-1]  # la última es la final
+            nombre_base = self.carpeta_temporal.name  # ej: pepegomez
+            ruta_bmp = self.carpeta_temporal / f"{nombre_base}_Renderizada.bmp"
+            img_final.save(ruta_bmp)  # PIL guarda en BMP si la extensión es .bmp
+
         self.mostrar_expedientes()
         visor = VisorView(self.root, self.imagenes_procesadas, self.nombre_actual)
         visor.focus_force()
