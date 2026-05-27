@@ -95,10 +95,11 @@ class DetallesView(ctk.CTkToplevel):
         num_piezas = len([f for f in archivos if "invertida" in f.name]) * 8
         self.piezas_label.configure(text=f"{num_piezas} piezas dentales segmentadas")
 
-        # Cargar imagen
-        invertida_path = next((f for f in archivos if "invertida" in f.name.lower()), None)
-        if invertida_path and invertida_path.exists():
-            img = Image.open(invertida_path)
+
+        # Cargar imagen - buscar _Renderizada.bmp o _Renderizada.jpg
+        renderizada_path = next((f for f in archivos if "_Renderizada" in f.name), None)
+        if renderizada_path and renderizada_path.exists():
+            img = Image.open(renderizada_path)
             max_size = (250, 250)
             img.thumbnail(max_size, Image.Resampling.LANCZOS)
             ctk_img = ctk.CTkImage(light_image=img, dark_image=img, size=(img.width, img.height))

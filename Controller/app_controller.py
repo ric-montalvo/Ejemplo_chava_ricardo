@@ -7,19 +7,18 @@ import csv
 import random
 import threading
 import customtkinter as ctk
-import threading
 import shutil
 from View.visor_view import VisorView
 
 sys.path.append(os.path.dirname(os.path.dirname(__file__)))
 
 from Modelo.Orquestador import Orquestador
-
 from Model.file_manager import FileManager
 from View.main_window import MainWindow
 from View.menu_view import MenuView
 from View.carga_view import CargaView
 from View.expedientes_view import ExpedientesView
+
 
 class AppController:
     def __init__(self):
@@ -30,13 +29,18 @@ class AppController:
         else:
             base = Path(__file__).parent.parent
         self.file_manager = FileManager(base)
-        self.modelo = Orquestador()   # ← aquí se reemplazará con el pipeline real
+        self.modelo = Orquestador()
 
         self.nombre_actual = ""
         self.imagenes_procesadas = []
 
+        # Bandera de cancelación
+        self.procesamiento_cancelado = False
+        self.carpeta_temporal = None
+
         self.mostrar_menu()
 
+    # -------------------- Navegación --------------------
     def mostrar_menu(self):
         self.root.cambiar_vista(MenuView(self.root, self))
 
@@ -51,32 +55,22 @@ class AppController:
     def volver_menu(self):
         self.mostrar_menu()
 
+    # -------------------- Procesamiento principal --------------------
     def procesar_imagen(self, nombre_paciente, ruta_imagen):
-        """Punto de entrada principal: verifica si existe la carpeta y decide qué hacer"""
+        """Punto de entrada: valida, crea carpeta y lanza procesamiento"""
         if not nombre_paciente or not ruta_imagen:
-            from tkinter import messagebox
             messagebox.showerror("Error", "Complete todos los campos")
             return
 
-        # ===== VALIDACIÓN DE FORMATO (aquí) =====
-        import os
-        from tkinter import messagebox
         ext = os.path.splitext(ruta_imagen)[1].lower()
         if ext not in ('.jpg', '.jpeg'):
             messagebox.showerror("Formato no válido", "La imagen debe ser JPG o JPEG.")
             return
-        # =======================================
-
-        from pathlib import Path
-        import shutil
 
         nombre_limpio = self.file_manager.sanitizar_nombre_carpeta(nombre_paciente)
-
-        # Buscar si ya existe una carpeta con ese nombre (en cualquier nivel)
         carpeta_existente = self.file_manager.obtener_carpeta_por_nombre(nombre_limpio)
 
         if not carpeta_existente:
-            # Caso 1: No existe -> crear carpeta raíz (sin fecha)
             try:
                 carpeta_destino = self.file_manager.crear_carpeta_raiz(nombre_limpio)
                 nombre_base = carpeta_destino.name
@@ -85,12 +79,113 @@ class AppController:
                 shutil.copy2(ruta_imagen, ruta_copia)
                 self.ejecutar_procesamiento(nombre_paciente, ruta_copia, carpeta_destino, nombre_base)
             except Exception as e:
-                from tkinter import messagebox
                 messagebox.showerror("Error", f"No se pudo crear la carpeta:\n{str(e)}")
         else:
-            # Caso 2: Ya existe -> mostrar diálogo
             self.mostrar_dialogo_duplicado(nombre_paciente, ruta_imagen, carpeta_existente)
 
+    def ejecutar_procesamiento(self, nombre_paciente, ruta_copia, carpeta_destino, nombre_base):
+        """Inicia el procesamiento en un hilo con botón de cancelar"""
+        self.nombre_actual = nombre_paciente
+        self.carpeta_temporal = carpeta_destino
+        self.procesamiento_cancelado = False
+
+        # Overlay de progreso
+        progress = ctk.CTkToplevel(self.root)
+        progress.title("Procesando")
+        progress.geometry("450x250")
+        progress.transient(self.root)
+        progress.grab_set()
+
+        ctk.CTkLabel(progress, text="Procesando imagen...", font=ctk.CTkFont(size=18, weight="bold")).pack(pady=30)
+        ctk.CTkLabel(progress, text=f"Analizando radiografía dental de {nombre_paciente}").pack(pady=5)
+
+        bar = ctk.CTkProgressBar(progress, width=300, mode="indeterminate")
+        bar.pack(pady=20)
+        bar.start()
+
+        btn_cancelar = ctk.CTkButton(
+            progress, text="Cancelar", width=120, height=30,
+            fg_color="#ef4444", hover_color="#dc2626",
+            command=lambda: self._cancelar_procesamiento(progress)
+        )
+        btn_cancelar.pack(pady=10)
+
+        # Hilo de procesamiento
+        def procesar():
+            try:
+                resultados = self.modelo.procesar_pipeline(str(ruta_copia))
+                if not self.procesamiento_cancelado:
+                    self.imagenes_procesadas = resultados
+                    self.root.after(0, self._finalizar_procesamiento_exitoso, progress)
+                else:
+                    # Cancelado: limpia carpeta y cierra overlay
+                    self.root.after(0, self._limpiar_y_cerrar, progress, cancelado=True)
+            except Exception as e:
+                if not self.procesamiento_cancelado:
+                    self.root.after(0, self._finalizar_procesamiento_con_error, progress, str(e))
+                else:
+                    self.root.after(0, self._limpiar_y_cerrar, progress, cancelado=True)
+
+        hilo = threading.Thread(target=procesar, daemon=True)
+        hilo.start()
+
+    def _cancelar_procesamiento(self, progress_window):
+        """Marca la cancelación y cierra la ventana de progreso"""
+        self.procesamiento_cancelado = True
+        try:
+            progress_window.destroy()
+        except:
+            pass
+        # Limpiar carpeta (si existe y está vacía o recién creada)
+        self._limpiar_carpeta_expediente()
+        messagebox.showinfo("Cancelado", "El procesamiento ha sido cancelado.\nNo se ha guardado ningún archivo.")
+
+    def _limpiar_carpeta_expediente(self):
+        """Elimina la carpeta del expediente si está vacía o solo tiene la original"""
+        if self.carpeta_temporal and self.carpeta_temporal.exists():
+            try:
+                # Borrar toda la carpeta (estamos en cancelación, no queremos nada)
+                shutil.rmtree(self.carpeta_temporal)
+            except Exception as e:
+                print(f"Error al limpiar carpeta: {e}")
+
+    def _limpiar_y_cerrar(self, progress_window, cancelado=False):
+        """Cierra el overlay y si fue cancelado no hace nada más (ya se limpió)"""
+        try:
+            progress_window.destroy()
+        except:
+            pass
+
+    def _finalizar_procesamiento_exitoso(self, progress_window):
+        """Procesamiento terminó correctamente: muestra visor y actualiza expedientes"""
+        try:
+            progress_window.destroy()
+        except:
+            pass
+        self.mostrar_expedientes()
+        visor = VisorView(self.root, self.imagenes_procesadas, self.nombre_actual)
+        visor.focus_force()
+
+    def _finalizar_procesamiento_con_error(self, progress_window, mensaje_error):
+        """Muestra error y elimina carpeta si está vacía"""
+        try:
+            progress_window.destroy()
+        except:
+            pass
+        messagebox.showerror("Error", f"Error al procesar:\n{mensaje_error}")
+        self._limpiar_carpeta_si_vacia()
+
+    def _limpiar_carpeta_si_vacia(self):
+        """Elimina la carpeta si no contiene ningún archivo (por si el error ocurrió antes de guardar)"""
+        if self.carpeta_temporal and self.carpeta_temporal.exists():
+            archivos = list(self.carpeta_temporal.glob("*"))
+            if not archivos:
+                try:
+                    shutil.rmtree(self.carpeta_temporal)
+                except:
+                    pass
+
+    # -------------------- Manejo de expedientes duplicados --------------------
     def on_visor_cerrado(self, destino):
         if destino == "menu":
             self.mostrar_menu()
@@ -99,12 +194,8 @@ class AppController:
         elif destino == "expedientes":
             self.mostrar_expedientes()
 
-    # controller/app_controller.py (agregar este método)
-
     def eliminar_expediente(self, carpeta, dialog=None):
-        """Elimina la carpeta del expediente y cierra el diálogo"""
         try:
-            import shutil
             shutil.rmtree(carpeta)
             if dialog:
                 dialog.destroy()
@@ -115,22 +206,17 @@ class AppController:
                 dialog.destroy()
             messagebox.showerror("Error", f"No se pudo eliminar:\n{str(e)}")
 
-    # En AppController, agregar:
     def obtener_expedientes(self):
-        """Devuelve la lista actual de expedientes (carpetas)"""
         return self.file_manager.listar_expedientes()
 
     def sanitizar_nombre_carpeta(self, nombre: str) -> str:
         from utils.helpers import sanitizar_nombre
         import re
         nombre = sanitizar_nombre(nombre).lower().replace(' ', '_')
-        nombre = re.sub(r'[^a-z_]', '', nombre)  # solo letras y guion bajo
+        nombre = re.sub(r'[^a-z_]', '', nombre)
         return nombre
 
     def mostrar_dialogo_duplicado(self, nombre_paciente, ruta_imagen, carpeta_existente):
-        """Muestra el diálogo con tres opciones: cancelar, subcarpeta, sustituir"""
-        import customtkinter as ctk
-
         dialog = ctk.CTkToplevel(self.root)
         dialog.title("Paciente Existente")
         dialog.geometry("450x200")
@@ -138,7 +224,6 @@ class AppController:
         dialog.grab_set()
         dialog.resizable(False, False)
 
-        # Centrar ventana
         dialog.update_idletasks()
         x = (dialog.winfo_screenwidth() // 2) - (450 // 2)
         y = (dialog.winfo_screenheight() // 2) - (200 // 2)
@@ -171,14 +256,11 @@ class AppController:
         ctk.CTkButton(btn_frame, text="Cancelar", width=100, command=cerrar).pack(side="left", padx=10)
         ctk.CTkButton(btn_frame, text="Crear Subcarpeta", width=130, command=opcion_subcarpeta,
                       fg_color="#10b981").pack(side="left", padx=10)
-        ctk.CTkButton(btn_frame, text="Sustituir Imagen", width=130, command=opcion_sustituir, fg_color="#3b82f6").pack(
-            side="left", padx=10)
+        ctk.CTkButton(btn_frame, text="Sustituir Imagen", width=130, command=opcion_sustituir,
+                      fg_color="#3b82f6").pack(side="left", padx=10)
 
     def procesar_con_subcarpeta(self, nombre_paciente, ruta_imagen, carpeta_base):
-        """Crea una subcarpeta y guarda la imagen allí"""
         try:
-            from pathlib import Path
-            import shutil
             carpeta_destino = self.file_manager.crear_subcarpeta(carpeta_base)
             nombre_base = carpeta_destino.name
             ext = Path(ruta_imagen).suffix
@@ -186,138 +268,25 @@ class AppController:
             shutil.copy2(ruta_imagen, ruta_copia)
             self.ejecutar_procesamiento(nombre_paciente, ruta_copia, carpeta_destino, nombre_base)
         except Exception as e:
-            from tkinter import messagebox
             messagebox.showerror("Error", f"No se pudo crear la subcarpeta:\n{str(e)}")
 
     def procesar_con_sustitucion(self, nombre_paciente, ruta_imagen, carpeta_existente):
-        """Sobrescribe la imagen en la carpeta existente"""
         try:
-            from pathlib import Path
-            import shutil
             nombre_base = carpeta_existente.name
             ext = Path(ruta_imagen).suffix
             ruta_copia = carpeta_existente / f"{nombre_base}_original{ext}"
             shutil.copy2(ruta_imagen, ruta_copia)
             self.ejecutar_procesamiento(nombre_paciente, ruta_copia, carpeta_existente, nombre_base)
         except Exception as e:
-            from tkinter import messagebox
             messagebox.showerror("Error", f"No se pudo sustituir la imagen:\n{str(e)}")
 
-    def ejecutar_procesamiento(self, nombre_paciente, ruta_copia, carpeta_destino, nombre_base):
-        """Realiza el procesamiento real con Orquestador"""
-        import customtkinter as ctk
-        from tkinter import messagebox
-        from View.visor_view import VisorView
-
-        self.nombre_actual = nombre_paciente
-
-        # Overlay de procesamiento (sin botón cancelar, o deshabilitado)
-        progress = ctk.CTkToplevel(self.root)
-        progress.title("Procesando")
-        progress.geometry("450x200")
-        progress.transient(self.root)
-        progress.grab_set()
-
-        ctk.CTkLabel(progress, text="Procesando imagen...", font=ctk.CTkFont(size=18, weight="bold")).pack(pady=30)
-        ctk.CTkLabel(progress, text=f"Analizando radiografía dental de {nombre_paciente}").pack(pady=5)
-        bar = ctk.CTkProgressBar(progress, width=300, mode="indeterminate")
-        bar.pack(pady=20)
-        bar.start()
-
-        self.root.update()
-
-        def procesar_en_hilo():
-            try:
-                # Llamada al pipeline real de Montoya
-                self.imagenes_procesadas = self.modelo.procesar_pipeline(str(ruta_copia))
-
-                # Si todo salió bien, cerrar overlay y mostrar resultados
-                self.root.after(0, self._finalizar_procesamiento_exitoso, progress)
-
-            except Exception as e:
-                self.root.after(0, self._finalizar_procesamiento_con_error, progress, str(e))
-
-        hilo = threading.Thread(target=procesar_en_hilo)
-        hilo.daemon = True
-        hilo.start()
-
-    """ANTIGUO Realiza el procesamiento de la imagen (overlay, modelo, guardar grises, mostrar expedientes y visor)
-    def ejecutar_procesamiento(self, nombre_paciente, ruta_copia, carpeta_destino, nombre_base):
-        import customtkinter as ctk
-        from tkinter import messagebox
-        from View.visor_view import VisorView
-        self.procesamiento_cancelado = False
-        self.modelo.cancelar = False
-        self.nombre_actual = nombre_paciente
-        # Overlay de procesamiento
-        progress = ctk.CTkToplevel(self.root)
-        progress.title("Procesando")
-        progress.geometry("450x250")
-        progress.transient(self.root)
-        progress.grab_set()
-
-        ctk.CTkLabel(progress, text="Procesando imagen...", font=ctk.CTkFont(size=18, weight="bold")).pack(pady=30)
-        ctk.CTkLabel(progress, text=f"Analizando radiografía dental de {nombre_paciente}").pack(pady=5)
-        bar = ctk.CTkProgressBar(progress, width=300, mode="indeterminate")
-        bar.pack(pady=20)
-        bar.start()
-        # Botón Cancelar (rojo)
-        btn_cancelar = ctk.CTkButton(
-            progress,
-            text="Cancelar",
-            width=120,
-            height=30,
-            fg_color="#ef4444",
-            hover_color="#dc2626",
-            state="disabled",
-            command=lambda: self.cancelar_procesamiento(progress, carpeta_destino)
-        )
-        btn_cancelar.pack(pady=10)
-        self.root.after(500, lambda: btn_cancelar.configure(state="normal"))
-
-        self.root.update()
-
-        # Variable para saber si se canceló
-        self.procesamiento_cancelado = False
-
-        def procesar_en_hilo():
-            try:
-                # Llamada al modelo de Montoya (ahora con sleep de 8s)
-                self.imagenes_procesadas = self.modelo.procesar_pipeline(str(ruta_copia))
-
-                # Si no se canceló, continuar
-                if not self.procesamiento_cancelado:
-                    # Guardar imagen en grises
-                    if len(self.imagenes_procesadas) >= 2:
-                        img_gris, _ = self.imagenes_procesadas[1]
-                        self.file_manager.guardar_imagen_grises(img_gris, carpeta_destino, nombre_paciente)
-                        self.generar_csv_mock(carpeta_destino, nombre_base)
-
-                    # Cerrar overlay y continuar en el hilo principal
-                    self.root.after(0, self._finalizar_procesamiento_exitoso, progress)
-
-            except Exception as e:
-                if str(e) == "Procesamiento cancelado por el usuario":
-                    self.procesamiento_cancelado = True
-                    self.root.after(0, self._finalizar_procesamiento_cancelado, progress, carpeta_destino)
-                else:
-                    if not self.procesamiento_cancelado:
-                        self.root.after(0, self._finalizar_procesamiento_con_error, progress, str(e))
-
-        # Iniciar el hilo
-        hilo = threading.Thread(target=procesar_en_hilo)
-        hilo.daemon = True
-        hilo.start()
-        """
-
+    # -------------------- Utilería de detalles y CSV --------------------
     def ver_detalles(self, carpeta):
         from View.detalles_view import DetallesView
         DetallesView(self.root, self, carpeta)
 
     def generar_csv_mock(self, carpeta: Path, nombre_base: str):
-        """Genera un archivo metricas.csv con datos simulados (32 dientes, nomenclatura Palmer)"""
         csv_path = carpeta / "metricas.csv"
-        # Lista completa de dientes según nomenclatura Palmer (1-8 por cuadrante)
         dientes = [11, 12, 13, 14, 15, 16, 17, 18,
                    21, 22, 23, 24, 25, 26, 27, 28,
                    31, 32, 33, 34, 35, 36, 37, 38,
@@ -343,44 +312,6 @@ class AppController:
             writer.writerow(["Pieza", "Inclinacion", "CoronaRaiz", "LongitudRaiz", "Diastema", "Ubicacion"])
             writer.writerows(metricas)
 
-    def cancelar_procesamiento(self, progress_window, carpeta_destino):
-        """Cancela el procesamiento: marca bandera y limpia la carpeta"""
-        self.procesamiento_cancelado = True
-        self.modelo.cancelar_procesamiento()  # Llama al método del modelo
-        # Eliminar la carpeta (si existe y está vacía o con archivos)
-        try:
-            if carpeta_destino.exists():
-                shutil.rmtree(carpeta_destino)
-        except:
-            pass
-        progress_window.destroy()
-        messagebox.showinfo("Cancelado",
-                            "El procesamiento ha sido cancelado.\nLa carpeta del paciente ha sido eliminada.")
-        # Resetear banderas para futuros procesamientos
-        self.procesamiento_cancelado = False
-        self.modelo.cancelar = False  # Acceder directamente al atributo
-
-    def _finalizar_procesamiento_exitoso(self, progress_window):
-        progress_window.destroy()
-        self.mostrar_expedientes()
-        # Opcional: guardar la imagen final (la última de la lista)
-        if self.imagenes_procesadas:
-            img_final, _ = self.imagenes_procesadas[-1]
-            # Puedes guardarla en la carpeta del paciente si lo deseas
-            # img_final.save(carpeta_destino / f"{nombre_base}_final.png")
-        visor = VisorView(self.root, self.imagenes_procesadas, self.nombre_actual)
-        visor.focus_force()
-
-    def _finalizar_procesamiento_cancelado(self, progress_window, carpeta_destino):
-        progress_window.destroy()
-        # La carpeta ya fue eliminada en cancelar_procesamiento
-        messagebox.showinfo("Cancelado", "El procesamiento se canceló. La carpeta no se creó.")
-        self.procesamiento_cancelado = False
-        self.modelo.cancelar = False
-
-    def _finalizar_procesamiento_con_error(self, progress_window, mensaje_error):
-        progress_window.destroy()
-        messagebox.showerror("Error", f"Error al procesar:\n{mensaje_error}")
-
+    # -------------------- Punto de entrada --------------------
     def run(self):
         self.root.mainloop()
