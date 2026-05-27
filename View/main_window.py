@@ -5,8 +5,8 @@ class MainWindow(ctk.CTk):
     def __init__(self):
         super().__init__()
         self.title("Sistema de Segmentación Dental")
-        self.geometry("1100x750")
-        self.minsize(1000, 700)
+        self.geometry("950x650")
+        self.minsize(800, 600)
 
         self.current_view = None
 

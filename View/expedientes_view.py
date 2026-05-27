@@ -39,7 +39,7 @@ class ExpedientesView(ctk.CTkFrame):
                                              width=150, height=35, corner_radius=15,
                                              fg_color="#f3f4f6", button_color="#3b82f6",
                                              command=self.on_order_change)
-        self.combo_orden.pack(side="right", padx=5)
+        self.combo_orden.pack(side="left", padx=5)  # ← cambia de "right" a "left"
         self.combo_orden.set("Más recientes")
 
         # Contenedor de lista de expedientes (scroll)
@@ -47,20 +47,17 @@ class ExpedientesView(ctk.CTkFrame):
                                                   fg_color="transparent")
         self.lista_frame.pack(pady=20, padx=40, fill="both", expand=True)
 
-        # Botones abajo: Actualizar + Nuevo
-        botones_frame = ctk.CTkFrame(self, fg_color="transparent")
-        botones_frame.pack(pady=10)
-
-        ctk.CTkButton(botones_frame, text="🔄 Actualizar",
+        # Botones Actualizar y Nuevo (arriba a la derecha)
+        ctk.CTkButton(filtros_frame, text="🔄 Actualizar",
                       command=self.refrescar_lista,
                       width=100, height=35, corner_radius=15,
-                      fg_color="#9ca3af", hover_color="#6b7280").pack(side="left", padx=10)
+                      fg_color="#9ca3af", hover_color="#6b7280").pack(side="right", padx=5)
 
-        ctk.CTkButton(botones_frame, text="+ Nuevo",
+        ctk.CTkButton(filtros_frame, text="+ Nuevo",
                       command=self.controller.mostrar_carga,
                       width=100, height=35, corner_radius=15,
                       fg_color="#10b981", hover_color="#059669",
-                      font=ctk.CTkFont(size=14, weight="bold")).pack(side="left", padx=10)
+                      font=ctk.CTkFont(size=14, weight="bold")).pack(side="right", padx=5)
 
         # Dibujar lista inicial
         self.actualizar_lista()
