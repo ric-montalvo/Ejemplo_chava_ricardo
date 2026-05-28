@@ -170,6 +170,16 @@ class AppController:
             ruta_bmp = self.carpeta_temporal / f"{nombre_base}_Renderizada.bmp"
             img_final.save(ruta_bmp)                      # PIL guarda en BMP
 
+        # Generar CSV de métricas (mock por ahora)
+        from Modelo.Productor_estadisticas import ProductorEstadisticas
+        productor = ProductorEstadisticas()
+        metricas = productor.generar_metricas()  # mock
+        csv_path = self.carpeta_temporal / "metricas.csv"
+        with open(csv_path, 'w', newline='', encoding='utf-8') as f:
+            writer = csv.writer(f)
+            writer.writerow(["Pieza", "Inclinacion", "CoronaRaiz", "LongitudRaiz", "Diastema", "Ubicacion"])
+            writer.writerows(metricas)
+
         self.mostrar_expedientes()
         visor = VisorView(self.root, self.imagenes_procesadas, self.nombre_actual)
         visor.focus_force()
@@ -294,32 +304,7 @@ class AppController:
         from View.detalles_view import DetallesView
         DetallesView(self.root, self, carpeta)
 
-    def generar_csv_mock(self, carpeta: Path, nombre_base: str):
-        csv_path = carpeta / "metricas.csv"
-        dientes = [11,12,13,14,15,16,17,18,
-                   21,22,23,24,25,26,27,28,
-                   31,32,33,34,35,36,37,38,
-                   41,42,43,44,45,46,47,48]
-        metricas = []
-        for diente in dientes:
-            inclinacion = round(random.uniform(0,45),1)
-            corona_raiz = round(random.uniform(0.5,2.0),2)
-            longitud_raiz = random.randint(30,60)
-            diastema = round(random.uniform(0,5),1)
-            if 11 <= diente <= 18:
-                ubicacion = "Superior Derecho"
-            elif 21 <= diente <= 28:
-                ubicacion = "Superior Izquierdo"
-            elif 31 <= diente <= 38:
-                ubicacion = "Inferior Izquierdo"
-            else:
-                ubicacion = "Inferior Derecho"
-            metricas.append([diente, inclinacion, corona_raiz, longitud_raiz, diastema, ubicacion])
 
-        with open(csv_path, 'w', newline='', encoding='utf-8') as f:
-            writer = csv.writer(f)
-            writer.writerow(["Pieza","Inclinacion","CoronaRaiz","LongitudRaiz","Diastema","Ubicacion"])
-            writer.writerows(metricas)
 
     def run(self):
         self.root.mainloop()
