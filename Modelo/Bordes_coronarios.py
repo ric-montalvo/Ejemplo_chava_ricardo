@@ -14,27 +14,30 @@ class Bordes_coronarios:
     puntos = Cargador_puntos()
     utilidades = Utilidades_npListas()
 
-    def extraer_contornos_dentales(self, sobel, maxilares, mandibulares):
-        radio, max_len, tolerancia = 2, 6, 0.40
+    def extraer_contornos_dentales(self, imagen, maxilares, mandibulares):
+        radio, max_len, tolerancia_h, tolerancia_v = 2, 6, 0.20, 0.4
         r_y, r_x = self.calcular_limites_roi(maxilares + mandibulares)
-        sobel = self.atenuar_ruido_gradiente(sobel)
+        sobel_gy = np.abs(self.sobel.gy_sobel(imagen))
+        sobel = self.sobel.magnitud_sobel(imagen)
+        sobel_gy = self.atenuar_ruido_gradiente(sobel_gy, 1.1)
+        sobel = self.atenuar_ruido_gradiente(sobel, 1.3)
 
         def procesar_arcada(puntos_iniciales, dir_vertical, es_maxilar):
             # 1. Seguimiento vertical
             bordes_vert = self.rastrear_borde_direccional(
-                sobel, puntos_iniciales, dir_vertical, radio, max_len, tolerancia, es_horizontal=False
+                sobel, puntos_iniciales, dir_vertical, radio, max_len, tolerancia_v, es_horizontal=False
             )
             filtrados = self.eliminar_trazos_cortos(self.agrupar_pixeles_conectados_dfs(bordes_vert), 20)
 
             # 2. Puntos de oclusión y barrido horizontal (ambas direcciones)
             p_oclusion = self.obtener_extremos_oclusales(filtrados, es_maxilar)
 
-            bh_der = self.rastrear_borde_direccional(sobel, p_oclusion, 1, radio + 1, max_len + 10, tolerancia,
+            bh_der = self.rastrear_borde_direccional(sobel, p_oclusion, 1, radio + 2, max_len + 10, tolerancia_h,
                                                      es_horizontal=True)
-            bh_izq = self.rastrear_borde_direccional(sobel, p_oclusion, -1, radio + 1, max_len + 10, tolerancia,
+            bh_izq = self.rastrear_borde_direccional(sobel, p_oclusion, -1, radio + 2, max_len + 10, tolerancia_h,
                                                      es_horizontal=True)
 
-            #Bordes agrupados
+            # Bordes agrupados
             bh_der = self.agrupar_pixeles_conectados_dfs(bh_der)
             bh_izq = self.agrupar_pixeles_conectados_dfs(bh_izq)
 
@@ -46,7 +49,6 @@ class Bordes_coronarios:
             bfs_max_izq = self.aplicar_bfs(brd_ROI_izq)
 
             borde_final = brd_ROI_der + brd_ROI_izq
-
 
             return filtrados, borde_final, p_oclusion
 
@@ -64,14 +66,14 @@ class Bordes_coronarios:
         borde_horizontal_maxilar = self.unir_e_interpolar_por_x(borde_horizontal_maxilar)
         borde_horizontal_mandibular = self.unir_e_interpolar_por_x(borde_horizontal_mandibular)
 
-        #borde_horizontal_maxilar = self.agrupar_pixeles_conectados_dfs(borde_horizontal_maxilar)
-        #borde_horizontal_mandibular = self.agrupar_pixeles_conectados_dfs(borde_horizontal_mandibular)
+        # borde_horizontal_maxilar = self.agrupar_pixeles_conectados_dfs(borde_horizontal_maxilar)
+        # borde_horizontal_mandibular = self.agrupar_pixeles_conectados_dfs(borde_horizontal_mandibular)
 
         # Generalizar bordes a retornar
         bordes_cuello_filtrados = self.recortar_fuera_del_roi(max_filtrados + man_filtrados, r_y, r_x)
 
+        return bordes_cuello_filtrados, borde_horizontal_maxilar, borde_horizontal_mandibular, sobel
 
-        return bordes_cuello_filtrados, borde_horizontal_maxilar, borde_horizontal_mandibular
 
 
     def rastrear_borde_direccional(self, sobel, puntos, direccion, radio, longitud_max, tolerancia,
@@ -106,7 +108,7 @@ class Bordes_coronarios:
 
                     siguiente_punto = max(candidatos, key=lambda coord: sobel[coord[0], coord[1]])
 
-                    if (sobel[siguiente_punto] - tolerancia_magnitud) > 0:
+                    if sobel[siguiente_punto] > tolerancia_magnitud:
                         puntos_visitados.update(self.interpolar_puntos(punto_actual, siguiente_punto))
                         punto_actual = siguiente_punto
                         encontro_siguiente = True
@@ -145,11 +147,11 @@ class Bordes_coronarios:
         umbral = np.percentile(longitudes, n)
         return [grupo for grupo in listas_tuplas if len(grupo) >= umbral and len(grupo) > 0]
 
-    def atenuar_ruido_gradiente(self, gradiente, potencia=1.6, raiz=0.3):
+    def atenuar_ruido_gradiente(self, gradiente, potencia=1.3):
         gradiente_abs = abs(gradiente)
         dispersion_ruido = gradiente_abs ** potencia
         gradiente_reducido = self.visualizador.mapear_a_visualizable(dispersion_ruido)
-        return gradiente_reducido ** raiz
+        return gradiente_reducido
 
     def obtener_extremos_oclusales(self, listas_tuplas, es_maxilar):
         puntos_representativos = []
@@ -322,6 +324,3 @@ class Bordes_coronarios:
                 camino_sin_duplicados.append(p)
 
         return camino_sin_duplicados
-
-    
-

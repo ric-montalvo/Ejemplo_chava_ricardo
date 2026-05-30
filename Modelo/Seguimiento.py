@@ -4,6 +4,7 @@ from Modelo.Bordes_ventana import bordes_ventana
 from Modelo.Operador_Sobel import Operador_Sobel
 from Modelo.Utilidades_npListas import Utilidades_npListas
 import math
+from Modelo.Seguidor_basado_vertices import Seguidor_basado_vertices
 
 
 class Seguimiento:
@@ -11,24 +12,16 @@ class Seguimiento:
     coronarios = Bordes_coronarios()
     sobel = Operador_Sobel()
     utilidades = Utilidades_npListas()
+    vertices = Seguidor_basado_vertices()
 
 
     def aplicar_seguimiento(self, imagen, pts_maxilares, pts_mandibulares):
-        """Algoritmo de seguimiento heuristico
-        usando los bordes detectado por el metodo estadistico y coronario
-        nuevas condiciones:
-        1. si el punto existe en estadistico agregar
-        2. si el punto existe en bordes cuello agregar
-        3. detenerse verticalmente al llegar a un borde coronario
-        esto seria la funcion vertical hacia la linea de oclusion
-
-        luego agregar la funcion vertical hacia raiz
-        """
+        maxilares, mandibulares = self.seguimiento_hacia_oclusion(imagen, pts_maxilares, pts_mandibulares)
 
         return 0
 
 
-    def seguimiento_hacia_oclusion(self, imagen, pts_maxilares, pts_mandibulares, brds_estadisticos, bordes_cuello, bordes_corona):
+    def seguimiento_hacia_oclusion(self, imagen, pts_maxilares, pts_mandibulares, bordes_cuello, bordes_corona):
         """Retorna Lista de listas"""
         sobel_gamma = self.coronarios.atenuar_ruido_gradiente(self.sobel.magnitud_sobel(imagen))
         direccion = self.sobel.orientacion_sobel(imagen)
@@ -36,25 +29,25 @@ class Seguimiento:
         #brds_estadisticos, puntos_ajustados = self.estadisticos.obtener_bordes(sobel_gamma, direccion, pts_unidos, (60, 30))
         #bordes_cuello, bordes_corona = self.coronarios.extraer_contornos_dentales(self.sobel.magnitud_sobel(imagen), pts_maxilares, pts_mandibulares)
 
-        bordes = []
+        maxilares = []
+        mandibulares = []
 
         for punto in pts_maxilares:
-            borde = self.union_corona_punto_inicial(punto, brds_estadisticos, bordes_cuello, bordes_corona, sobel_gamma, True, 1)
-            bordes.append(borde)
+            borde = self.union_corona_punto_inicial(punto, bordes_cuello, bordes_corona, sobel_gamma, True, 1)
+            maxilares.append(borde)
 
         for punto in pts_mandibulares:
-            borde = self.union_corona_punto_inicial(punto, brds_estadisticos, bordes_cuello, bordes_corona, sobel_gamma, False, 1)
-            bordes.append(borde)
-        return bordes
+            borde = self.union_corona_punto_inicial(punto, bordes_cuello, bordes_corona, sobel_gamma, False, 1)
+            mandibulares.append(borde)
+        return maxilares, mandibulares
 
-    def union_corona_punto_inicial(self, punto, brds_estadisticos, bordes_cuello, bordes_corona, magnitud, es_maxilar,
+    def union_corona_punto_inicial(self, punto, bordes_cuello, bordes_corona, magnitud, es_maxilar,
                                    radio):
         """Retorna Lista"""
         h, w = magnitud.shape
         camino = []
         bandera = True
         punto_actual = punto
-        #set_colision = brds_estadisticos | bordes_cuello | bordes_corona
         while bandera:
             camino.append(punto_actual)
 
@@ -81,12 +74,6 @@ class Seguimiento:
             if vecino_corona:
                 camino.append(vecino_corona)
                 break
-
-
-            vecino_borde = next((v for v in vecinos if v in brds_estadisticos), False)
-            if vecino_borde:
-                punto_actual = vecino_borde
-                continue
 
             vecino_cuello = next((v for v in vecinos if v in bordes_cuello), False)
             if vecino_cuello:

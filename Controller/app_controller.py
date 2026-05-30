@@ -170,19 +170,47 @@ class AppController:
             ruta_bmp = self.carpeta_temporal / f"{nombre_base}_Renderizada.bmp"
             img_final.save(ruta_bmp)                      # PIL guarda en BMP
 
-        # Generar CSV de métricas (mock por ahora)
+        # Generar CSV de métricas (usando datos reales de Montoya si están disponibles)
         from Modelo.Productor_estadisticas import ProductorEstadisticas
-        productor = ProductorEstadisticas()
-        metricas = productor.generar_metricas()  # mock
+
+        # Intentar obtener métricas reales desde el orquestador
+        try:
+            detecciones_raw = self.modelo.obtener_metricas_reales()
+            if detecciones_raw is None:
+                raise AttributeError("No hay métricas reales")
+
+            # Transformar al formato que espera Productor_estadisticas
+            # Se espera que cada elemento de detecciones_raw sea una tupla: ([id], inclinacion, proporcion, largo, diastema, (y,x))
+            detecciones_formateadas = []
+            for raw in detecciones_raw:
+                # Extraer el id: puede ser una lista de un elemento o un entero
+                if isinstance(raw[0], (list, tuple)):
+                    id_diente = raw[0][0] if len(raw[0]) > 0 else 0
+                else:
+                    id_diente = raw[0]
+                detecciones_formateadas.append((
+                    id_diente,
+                    raw[1],  # inclinacion
+                    raw[2],  # proporcion
+                    raw[3],  # largo
+                    raw[4],  # diastema
+                    raw[5]  # (y,x)
+                ))
+            print(f" Usando métricas reales: {len(detecciones_formateadas)} dientes detectados")
+            productor = ProductorEstadisticas()
+            metricas = productor.generar_metricas(detecciones_formateadas)
+        except (AttributeError, TypeError, IndexError) as e:
+            # Si no existe el método o no hay datos, usar mock
+            print(f"No se pudieron obtener métricas reales: {e}. Usando datos mock.")
+            productor = ProductorEstadisticas()
+            metricas = productor.generar_metricas()  # mock
+
+        # Guardar CSV
         csv_path = self.carpeta_temporal / "metricas.csv"
         with open(csv_path, 'w', newline='', encoding='utf-8') as f:
             writer = csv.writer(f)
             writer.writerow(["Pieza", "Inclinacion", "CoronaRaiz", "LongitudRaiz", "Diastema", "Ubicacion"])
             writer.writerows(metricas)
-
-        self.mostrar_expedientes()
-        visor = VisorView(self.root, self.imagenes_procesadas, self.nombre_actual)
-        visor.focus_force()
 
     def _finalizar_procesamiento_con_error(self, progress_window, mensaje_error):
         try:

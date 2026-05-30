@@ -46,3 +46,33 @@ class Metodos_numericos:
         return puntos
 
 
+    def extrapolar_borde(self, puntos, n_pasos, direccion_y=1, tamaño_paso_y=1.0, conectar_exacto=True):
+        if len(puntos) < 2:
+            return puntos
+        y = np.array([p[0] for p in puntos])
+        x = np.array([p[1] for p in puntos])
+
+        coeficientes = np.polyfit(y, x, 1)
+        pendiente_m = coeficientes[0]
+        intercepto_b = coeficientes[1]
+
+        if direccion_y > 0:
+            indice_extremo = np.argmax(y)
+        else:
+            indice_extremo = np.argmin(y)
+
+        y_ancla = y[indice_extremo]
+        x_ancla = x[indice_extremo]
+
+        if conectar_exacto:
+            intercepto_b = x_ancla - (pendiente_m * y_ancla)
+
+        funcion_recta_x = np.poly1d([pendiente_m, intercepto_b])
+        direccion_limpia = np.sign(direccion_y)
+
+        nuevos_y = [y_ancla + (i * tamaño_paso_y * direccion_limpia) for i in range(1, n_pasos + 1)]
+        nuevos_x = funcion_recta_x(nuevos_y)
+
+        puntos_proyectados = [(int(round(ny)), int(round(nx))) for ny, nx in zip(nuevos_y, nuevos_x)]
+
+        return puntos_proyectados
