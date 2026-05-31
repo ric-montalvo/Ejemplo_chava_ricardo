@@ -211,6 +211,9 @@ class AppController:
             writer = csv.writer(f)
             writer.writerow(["Pieza", "Inclinacion", "CoronaRaiz", "LongitudRaiz", "Diastema", "Ubicacion"])
             writer.writerows(metricas)
+        self.mostrar_expedientes()
+        visor = VisorView(self.root, self.imagenes_procesadas, self.nombre_actual)
+        visor.focus_force()
 
     def _finalizar_procesamiento_con_error(self, progress_window, mensaje_error):
         try:
