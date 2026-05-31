@@ -113,9 +113,9 @@ class Orquestador:
             img_segmentados = Image.fromarray(np_segmentados)
 
             # Guardado de imágenes (opcional)
-            self.almacenar.guardar_resultado(path, np_show, "_original")
-            self.almacenar.guardar_resultado(path, np_iniciales, "Puntos iniciales")
-            self.almacenar.guardar_resultado(path, np_segmentados, "_Renderizada")
+           # self.almacenar.guardar_resultado(path, np_show, "_original")
+           # self.almacenar.guardar_resultado(path, np_iniciales, "Puntos iniciales")
+           # self.almacenar.guardar_resultado(path, np_segmentados, "_Renderizada")
 
             # Retorno para el visor
             return [

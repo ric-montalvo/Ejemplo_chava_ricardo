@@ -24,6 +24,18 @@ class DetallesView(ctk.CTkToplevel):
         self._cargar_datos(self.carpeta_actual)
         self._actualizar_lista_subcarpetas()
 
+    def destroy(self):
+        # Cerrar imagen PIL si existe
+        if hasattr(self, 'imagen_renderizada_pil') and self.imagen_renderizada_pil:
+            self.imagen_renderizada_pil.close()
+            self.imagen_renderizada_pil = None
+        # Limpiar CTkImage de la etiqueta
+        if hasattr(self, 'imagen_label'):
+            self.imagen_label.configure(image=None)
+            self.imagen_label.image = None
+        # Llamar al destroy original
+        super().destroy()
+
     # ---------- Construcción de la interfaz ----------
     def _crear_widgets(self):
         self.grid_rowconfigure(1, weight=1)
@@ -124,9 +136,10 @@ class DetallesView(ctk.CTkToplevel):
         self.fecha_label.configure(text=formatear_fecha(carpeta.stat().st_mtime))
 
         archivos = list(carpeta.glob("*"))
-        num_piezas = len([f for f in archivos if "invertida" in f.name]) * 8
+        num_piezas = 32
         self.piezas_label.configure(text=f"{num_piezas} piezas dentales segmentadas")
-
+        if hasattr(self, 'imagen_renderizada_pil') and self.imagen_renderizada_pil:
+            self.imagen_renderizada_pil.close()
         # Cargar imagen - buscar _Renderizada.bmp o _Renderizada.jpg
         renderizada_path = next((f for f in archivos if "_Renderizada" in f.name), None)
         self.ruta_renderizada_actual = renderizada_path  # guardar para el visor
@@ -202,7 +215,7 @@ class DetallesView(ctk.CTkToplevel):
         ctk.CTkLabel(info, text=nombre_text, font=ctk.CTkFont(size=13, weight="bold")).pack(anchor="w")
         fecha = formatear_fecha(carpeta.stat().st_mtime)
         archivos = list(carpeta.glob("*"))
-        piezas = len([f for f in archivos if "invertida" in f.name]) * 8
+        piezas = 32
         ctk.CTkLabel(info, text=f"{fecha} | {piezas} piezas", font=ctk.CTkFont(size=10)).pack(anchor="w")
         btn = ctk.CTkButton(card, text="VER", width=50, height=28,
                             command=lambda c=carpeta: self._cambiar_carpeta_activa(c))

@@ -9,7 +9,8 @@ import threading
 import customtkinter as ctk
 import shutil
 from View.visor_view import VisorView
-
+import gc
+import time
 sys.path.append(os.path.dirname(os.path.dirname(__file__)))
 
 from Modelo.Orquestador import Orquestador
@@ -170,6 +171,13 @@ class AppController:
             ruta_bmp = self.carpeta_temporal / f"{nombre_base}_Renderizada.bmp"
             img_final.save(ruta_bmp)                      # PIL guarda en BMP
 
+        if self.imagenes_procesadas and len(self.imagenes_procesadas) >= 2 and self.carpeta_temporal:
+            img_puntos, _ = self.imagenes_procesadas[1]  # índice 1 = "1. Puntos iniciales"
+            nombre_base = self.carpeta_temporal.name
+            ruta_puntos = self.carpeta_temporal / f"{nombre_base}_Puntos_iniciales.jpg"
+            img_puntos.save(ruta_puntos)
+            print(f"Puntos iniciales guardados en {ruta_puntos}")
+
         # Generar CSV de métricas (usando datos reales de Montoya si están disponibles)
         from Modelo.Productor_estadisticas import ProductorEstadisticas
 
@@ -324,7 +332,11 @@ class AppController:
             nombre_base = carpeta_existente.name
             ext = Path(ruta_imagen).suffix
             ruta_copia = carpeta_existente / f"{nombre_base}_original{ext}"
+
+            # Sobrescribir la imagen original (copiar nueva sobre la existente)
             shutil.copy2(ruta_imagen, ruta_copia)
+
+            # Iniciar el procesamiento (los archivos de resultados se sobrescribirán al final)
             self.ejecutar_procesamiento(nombre_paciente, ruta_copia, carpeta_existente,
                                         nombre_base, nombre_archivo)
         except Exception as e:

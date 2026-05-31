@@ -149,6 +149,11 @@ class VisorView(ctk.CTkToplevel):
         self.actualizar()
 
     def cerrar_y_volver(self):
+        if hasattr(self, 'tk_image') and self.tk_image:
+            self.tk_image = None
+        if hasattr(self, 'image_pil') and self.image_pil:
+            self.image_pil.close()
+            self.image_pil = None
         self.destroy()
         if self.on_volver:
             self.on_volver("menu")

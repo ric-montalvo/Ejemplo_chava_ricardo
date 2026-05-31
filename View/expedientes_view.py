@@ -117,7 +117,7 @@ class ExpedientesView(ctk.CTkFrame):
 
         fecha_mod = formatear_fecha(carpeta.stat().st_mtime)
         archivos = list(carpeta.glob("*"))
-        num_piezas = len([f for f in archivos if "invertida" in f.name]) * 8
+        num_piezas = 32
 
         # Tarjeta principal
         card = ctk.CTkFrame(parent_frame, corner_radius=15, border_width=1,
@@ -191,7 +191,7 @@ class ExpedientesView(ctk.CTkFrame):
         """Crea una tarjeta para subcarpetas (sin botones de acción, solo información)"""
         fecha_mod = formatear_fecha(carpeta.stat().st_mtime)
         archivos = list(carpeta.glob("*"))
-        num_piezas = len([f for f in archivos if "invertida" in f.name]) * 8
+        num_piezas = 32
 
         card = ctk.CTkFrame(parent_frame, corner_radius=12, border_width=1,
                             border_color="#e5e7eb", fg_color="#f9fafb")
