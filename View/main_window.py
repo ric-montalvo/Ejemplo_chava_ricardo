@@ -11,6 +11,7 @@ class MainWindow(ctk.CTk):
         self.minsize(800, 600)
 
         self.current_view = None
+        self.logo_label = None
         self.agregar_logos()
 
     def agregar_logos(self):
@@ -23,6 +24,8 @@ class MainWindow(ctk.CTk):
 
             self.logo_label = ctk.CTkLabel(self, image=logo_image, text="")
             self.logo_label.place(relx=0.0, rely=1.0, anchor="sw", x=15, y=0)
+            # Inicialmente visible (porque la primera vista es el menú)
+            self.logo_label.lift()
 
         except FileNotFoundError:
             print(f"Error: No se encontró la imagen en: {ruta_logo}")
@@ -34,5 +37,10 @@ class MainWindow(ctk.CTk):
         self.current_view = nueva_vista
         self.current_view.pack(fill="both", expand=True)
 
-        if hasattr(self, 'logo_label'):
-            self.logo_label.lift()
+        # Mostrar logo solo si la vista es MenuView, de lo contrario ocultarlo
+        if self.logo_label:
+            if nueva_vista.__class__.__name__ == "MenuView":
+                self.logo_label.lift()
+                self.logo_label.place(relx=0.0, rely=1.0, anchor="sw", x=15, y=0)  # asegurar posición
+            else:
+                self.logo_label.place_forget()  # ocultar logo
