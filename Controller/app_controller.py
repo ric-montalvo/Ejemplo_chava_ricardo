@@ -251,16 +251,34 @@ class AppController:
             self.mostrar_expedientes()
 
     def eliminar_expediente(self, carpeta, dialog=None):
-        try:
-            shutil.rmtree(carpeta)
-            if dialog:
-                dialog.destroy()
-            self.mostrar_expedientes()
-            messagebox.showinfo("Éxito", "Expediente eliminado correctamente")
-        except Exception as e:
-            if dialog:
-                dialog.destroy()
-            messagebox.showerror("Error", f"No se pudo eliminar:\n{str(e)}")
+        import time
+        import gc
+        from tkinter import messagebox
+
+        # Cerrar ventanas de detalles abiertas para esta carpeta
+        for widget in self.root.winfo_children():
+            if isinstance(widget, ctk.CTkToplevel) and "Detalles del Expediente" in widget.title():
+                if hasattr(widget, 'carpeta_actual') and widget.carpeta_actual == carpeta:
+                    widget.destroy()
+
+        gc.collect()
+        time.sleep(0.1)
+
+        # Intentar eliminar la carpeta completa con reintentos
+        for intento in range(5):
+            try:
+                shutil.rmtree(carpeta)
+                break
+            except PermissionError:
+                time.sleep(0.2)
+        else:
+            messagebox.showerror("Error", f"No se pudo eliminar la carpeta (archivo en uso).\n{carpeta}")
+            return
+
+        if dialog:
+            dialog.destroy()
+        self.mostrar_expedientes()
+        messagebox.showinfo("Éxito", "Expediente eliminado correctamente")
 
     def obtener_expedientes(self):
         return self.file_manager.listar_expedientes()

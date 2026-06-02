@@ -376,6 +376,7 @@ imports:
  &#8226;   <a href="#View.visor_view">View.visor_view</a>
  &#8226;   <a href="#csv">csv</a>
  &#8226;   <a href="#customtkinter">customtkinter</a>
+ &#8226;   <a href="#gc">gc</a>
  &#8226;   <a href="#os">os</a>
  &#8226;   <a href="#pathlib">pathlib</a>
  &#8226;   <a href="#random">random</a>
@@ -383,6 +384,7 @@ imports:
  &#8226;   <a href="#shutil">shutil</a>
  &#8226;   <a href="#sys">sys</a>
  &#8226;   <a href="#threading">threading</a>
+ &#8226;   <a href="#time">time</a>
  &#8226;   <a href="#tkinter">tkinter</a>
  &#8226;   <a href="#tkinter.messagebox">tkinter.messagebox</a>
  &#8226;   <a href="#traceback">traceback</a>
@@ -444,7 +446,8 @@ imported by:
   <a target="code" href="///C:/Users/mum_r/PycharmProjects/Ejemplo_chava_ricardo/Modelo/__init__.py" type="text/plain"><tt>Modelo</tt></a>
 <span class="moduletype">Package</span>  <div class="import">
 imported by:
-    <a href="#Modelo.Bordes_coronarios">Modelo.Bordes_coronarios</a>
+    <a href="#Modelo.Ajustador_inercia">Modelo.Ajustador_inercia</a>
+ &#8226;   <a href="#Modelo.Bordes_coronarios">Modelo.Bordes_coronarios</a>
  &#8226;   <a href="#Modelo.Bordes_ventana">Modelo.Bordes_ventana</a>
  &#8226;   <a href="#Modelo.Cargador_puntos">Modelo.Cargador_puntos</a>
  &#8226;   <a href="#Modelo.Convolucionador">Modelo.Convolucionador</a>
@@ -452,7 +455,9 @@ imported by:
  &#8226;   <a href="#Modelo.Filtros_espaciales">Modelo.Filtros_espaciales</a>
  &#8226;   <a href="#Modelo.Gestor_almacenamiento">Modelo.Gestor_almacenamiento</a>
  &#8226;   <a href="#Modelo.Metodos_numericos">Modelo.Metodos_numericos</a>
+ &#8226;   <a href="#Modelo.Metricas">Modelo.Metricas</a>
  &#8226;   <a href="#Modelo.Morfologia">Modelo.Morfologia</a>
+ &#8226;   <a href="#Modelo.Operaciones_anchura">Modelo.Operaciones_anchura</a>
  &#8226;   <a href="#Modelo.Operador_Sobel">Modelo.Operador_Sobel</a>
  &#8226;   <a href="#Modelo.Orquestador">Modelo.Orquestador</a>
  &#8226;   <a href="#Modelo.Productor_estadisticas">Modelo.Productor_estadisticas</a>
@@ -460,8 +465,27 @@ imported by:
  &#8226;   <a href="#Modelo.Seguidor_de_contorno">Modelo.Seguidor_de_contorno</a>
  &#8226;   <a href="#Modelo.Seguimiento">Modelo.Seguimiento</a>
  &#8226;   <a href="#Modelo.Utilidades_npListas">Modelo.Utilidades_npListas</a>
- &#8226;   <a href="#Modelo.Validador_puntos">Modelo.Validador_puntos</a>
  &#8226;   <a href="#Modelo.Visualizador_operaciones">Modelo.Visualizador_operaciones</a>
+
+  </div>
+
+</div>
+
+<div class="node">
+  <a name="Modelo.Ajustador_inercia"></a>
+  <a target="code" href="///C:/Users/mum_r/PycharmProjects/Ejemplo_chava_ricardo/Modelo/Ajustador_inercia.py" type="text/plain"><tt>Modelo.Ajustador_inercia</tt></a>
+<span class="moduletype">SourceModule</span>  <div class="import">
+imports:
+    <a href="#Modelo">Modelo</a>
+ &#8226;   <a href="#Modelo.Metodos_numericos">Modelo.Metodos_numericos</a>
+ &#8226;   <a href="#Modelo.Operador_Sobel">Modelo.Operador_Sobel</a>
+ &#8226;   <a href="#Modelo.Visualizador_operaciones">Modelo.Visualizador_operaciones</a>
+ &#8226;   <a href="#numpy">numpy</a>
+
+  </div>
+  <div class="import">
+imported by:
+    <a href="#Modelo.Seguidor_basado_vertices">Modelo.Seguidor_basado_vertices</a>
 
   </div>
 
@@ -617,7 +641,29 @@ imports:
   </div>
   <div class="import">
 imported by:
-    <a href="#Modelo.Validador_puntos">Modelo.Validador_puntos</a>
+    <a href="#Modelo.Ajustador_inercia">Modelo.Ajustador_inercia</a>
+ &#8226;   <a href="#Modelo.Metricas">Modelo.Metricas</a>
+ &#8226;   <a href="#Modelo.Operaciones_anchura">Modelo.Operaciones_anchura</a>
+
+  </div>
+
+</div>
+
+<div class="node">
+  <a name="Modelo.Metricas"></a>
+  <a target="code" href="///C:/Users/mum_r/PycharmProjects/Ejemplo_chava_ricardo/Modelo/Metricas.py" type="text/plain"><tt>Modelo.Metricas</tt></a>
+<span class="moduletype">SourceModule</span>  <div class="import">
+imports:
+    <a href="#Modelo">Modelo</a>
+ &#8226;   <a href="#Modelo.Metodos_numericos">Modelo.Metodos_numericos</a>
+ &#8226;   <a href="#Modelo.Operaciones_anchura">Modelo.Operaciones_anchura</a>
+ &#8226;   <a href="#math">math</a>
+ &#8226;   <a href="#numpy">numpy</a>
+
+  </div>
+  <div class="import">
+imported by:
+    <a href="#Modelo.Orquestador">Modelo.Orquestador</a>
 
   </div>
 
@@ -635,6 +681,25 @@ imports:
   <div class="import">
 imported by:
     <a href="#Modelo.Bordes_ventana">Modelo.Bordes_ventana</a>
+
+  </div>
+
+</div>
+
+<div class="node">
+  <a name="Modelo.Operaciones_anchura"></a>
+  <a target="code" href="///C:/Users/mum_r/PycharmProjects/Ejemplo_chava_ricardo/Modelo/Operaciones_anchura.py" type="text/plain"><tt>Modelo.Operaciones_anchura</tt></a>
+<span class="moduletype">SourceModule</span>  <div class="import">
+imports:
+    <a href="#Modelo">Modelo</a>
+ &#8226;   <a href="#Modelo.Metodos_numericos">Modelo.Metodos_numericos</a>
+ &#8226;   <a href="#math">math</a>
+ &#8226;   <a href="#numpy">numpy</a>
+
+  </div>
+  <div class="import">
+imported by:
+    <a href="#Modelo.Metricas">Modelo.Metricas</a>
  &#8226;   <a href="#Modelo.Orquestador">Modelo.Orquestador</a>
 
   </div>
@@ -653,8 +718,8 @@ imports:
   </div>
   <div class="import">
 imported by:
-    <a href="#Modelo.Bordes_coronarios">Modelo.Bordes_coronarios</a>
- &#8226;   <a href="#Modelo.Orquestador">Modelo.Orquestador</a>
+    <a href="#Modelo.Ajustador_inercia">Modelo.Ajustador_inercia</a>
+ &#8226;   <a href="#Modelo.Bordes_coronarios">Modelo.Bordes_coronarios</a>
  &#8226;   <a href="#Modelo.Seguidor_basado_vertices">Modelo.Seguidor_basado_vertices</a>
  &#8226;   <a href="#Modelo.Seguidor_de_contorno">Modelo.Seguidor_de_contorno</a>
  &#8226;   <a href="#Modelo.Seguimiento">Modelo.Seguimiento</a>
@@ -675,18 +740,16 @@ imports:
  &#8226;   <a href="#Modelo.Filtrador_bordes_cuello_corona">Modelo.Filtrador_bordes_cuello_corona</a>
  &#8226;   <a href="#Modelo.Filtros_espaciales">Modelo.Filtros_espaciales</a>
  &#8226;   <a href="#Modelo.Gestor_almacenamiento">Modelo.Gestor_almacenamiento</a>
- &#8226;   <a href="#Modelo.Morfologia">Modelo.Morfologia</a>
- &#8226;   <a href="#Modelo.Operador_Sobel">Modelo.Operador_Sobel</a>
+ &#8226;   <a href="#Modelo.Metricas">Modelo.Metricas</a>
+ &#8226;   <a href="#Modelo.Operaciones_anchura">Modelo.Operaciones_anchura</a>
  &#8226;   <a href="#Modelo.Seguidor_basado_vertices">Modelo.Seguidor_basado_vertices</a>
  &#8226;   <a href="#Modelo.Seguidor_de_contorno">Modelo.Seguidor_de_contorno</a>
  &#8226;   <a href="#Modelo.Seguimiento">Modelo.Seguimiento</a>
  &#8226;   <a href="#Modelo.Utilidades_npListas">Modelo.Utilidades_npListas</a>
- &#8226;   <a href="#Modelo.Validador_puntos">Modelo.Validador_puntos</a>
  &#8226;   <a href="#Modelo.Visualizador_operaciones">Modelo.Visualizador_operaciones</a>
  &#8226;   <a href="#PIL">PIL</a>
  &#8226;   <a href="#PIL.Image">PIL.Image</a>
  &#8226;   <a href="#PIL.ImageOps">PIL.ImageOps</a>
- &#8226;   <a href="#cv2">cv2</a>
  &#8226;   <a href="#numpy">numpy</a>
  &#8226;   <a href="#os">os</a>
  &#8226;   <a href="#traceback">traceback</a>
@@ -723,16 +786,19 @@ imported by:
 <span class="moduletype">SourceModule</span>  <div class="import">
 imports:
     <a href="#Modelo">Modelo</a>
+ &#8226;   <a href="#Modelo.Ajustador_inercia">Modelo.Ajustador_inercia</a>
  &#8226;   <a href="#Modelo.Bordes_coronarios">Modelo.Bordes_coronarios</a>
  &#8226;   <a href="#Modelo.Bordes_ventana">Modelo.Bordes_ventana</a>
  &#8226;   <a href="#Modelo.Filtrador_bordes_cuello_corona">Modelo.Filtrador_bordes_cuello_corona</a>
  &#8226;   <a href="#Modelo.Operador_Sobel">Modelo.Operador_Sobel</a>
+ &#8226;   <a href="#Modelo.Visualizador_operaciones">Modelo.Visualizador_operaciones</a>
  &#8226;   <a href="#numpy">numpy</a>
 
   </div>
   <div class="import">
 imported by:
     <a href="#Modelo.Orquestador">Modelo.Orquestador</a>
+ &#8226;   <a href="#Modelo.Seguimiento">Modelo.Seguimiento</a>
 
   </div>
 
@@ -767,6 +833,7 @@ imports:
  &#8226;   <a href="#Modelo.Bordes_coronarios">Modelo.Bordes_coronarios</a>
  &#8226;   <a href="#Modelo.Bordes_ventana">Modelo.Bordes_ventana</a>
  &#8226;   <a href="#Modelo.Operador_Sobel">Modelo.Operador_Sobel</a>
+ &#8226;   <a href="#Modelo.Seguidor_basado_vertices">Modelo.Seguidor_basado_vertices</a>
  &#8226;   <a href="#Modelo.Utilidades_npListas">Modelo.Utilidades_npListas</a>
  &#8226;   <a href="#math">math</a>
  &#8226;   <a href="#numpy">numpy</a>
@@ -794,27 +861,7 @@ imported by:
     <a href="#Modelo.Bordes_coronarios">Modelo.Bordes_coronarios</a>
  &#8226;   <a href="#Modelo.Orquestador">Modelo.Orquestador</a>
  &#8226;   <a href="#Modelo.Seguimiento">Modelo.Seguimiento</a>
- &#8226;   <a href="#Modelo.Validador_puntos">Modelo.Validador_puntos</a>
  &#8226;   <a href="#Modelo.Visualizador_operaciones">Modelo.Visualizador_operaciones</a>
-
-  </div>
-
-</div>
-
-<div class="node">
-  <a name="Modelo.Validador_puntos"></a>
-  <a target="code" href="///C:/Users/mum_r/PycharmProjects/Ejemplo_chava_ricardo/Modelo/Validador_puntos.py" type="text/plain"><tt>Modelo.Validador_puntos</tt></a>
-<span class="moduletype">SourceModule</span>  <div class="import">
-imports:
-    <a href="#Modelo">Modelo</a>
- &#8226;   <a href="#Modelo.Metodos_numericos">Modelo.Metodos_numericos</a>
- &#8226;   <a href="#Modelo.Utilidades_npListas">Modelo.Utilidades_npListas</a>
- &#8226;   <a href="#numpy">numpy</a>
-
-  </div>
-  <div class="import">
-imported by:
-    <a href="#Modelo.Orquestador">Modelo.Orquestador</a>
 
   </div>
 
@@ -832,9 +879,11 @@ imports:
   </div>
   <div class="import">
 imported by:
-    <a href="#Modelo.Bordes_coronarios">Modelo.Bordes_coronarios</a>
+    <a href="#Modelo.Ajustador_inercia">Modelo.Ajustador_inercia</a>
+ &#8226;   <a href="#Modelo.Bordes_coronarios">Modelo.Bordes_coronarios</a>
  &#8226;   <a href="#Modelo.Convolucionador">Modelo.Convolucionador</a>
  &#8226;   <a href="#Modelo.Orquestador">Modelo.Orquestador</a>
+ &#8226;   <a href="#Modelo.Seguidor_basado_vertices">Modelo.Seguidor_basado_vertices</a>
  &#8226;   <a href="#Modelo.Seguidor_de_contorno">Modelo.Seguidor_de_contorno</a>
 
   </div>
@@ -8108,7 +8157,6 @@ imports:
   <div class="import">
 imported by:
     <a href="#Modelo.Gestor_almacenamiento">Modelo.Gestor_almacenamiento</a>
- &#8226;   <a href="#Modelo.Orquestador">Modelo.Orquestador</a>
  &#8226;   <a href="#cv2">cv2</a>
  &#8226;   <a href="#cv2.config">cv2.config</a>
  &#8226;   <a href="#cv2.config-3">cv2.config-3</a>
@@ -11952,7 +12000,8 @@ imports:
   </div>
   <div class="import">
 imported by:
-    <a href="#_posixsubprocess">_posixsubprocess</a>
+    <a href="#Controller.app_controller">Controller.app_controller</a>
+ &#8226;   <a href="#_posixsubprocess">_posixsubprocess</a>
  &#8226;   <a href="#numpy.testing._private.utils">numpy.testing._private.utils</a>
  &#8226;   <a href="#weakref">weakref</a>
 
@@ -13343,7 +13392,9 @@ imported by:
   <a name="math"></a>
   <tt>math</tt> <span class="moduletype"><i>(builtin module)</i></span>  <div class="import">
 imported by:
-    <a href="#Modelo.Seguimiento">Modelo.Seguimiento</a>
+    <a href="#Modelo.Metricas">Modelo.Metricas</a>
+ &#8226;   <a href="#Modelo.Operaciones_anchura">Modelo.Operaciones_anchura</a>
+ &#8226;   <a href="#Modelo.Seguimiento">Modelo.Seguimiento</a>
  &#8226;   <a href="#PIL.FitsImagePlugin">PIL.FitsImagePlugin</a>
  &#8226;   <a href="#PIL.GifImagePlugin">PIL.GifImagePlugin</a>
  &#8226;   <a href="#PIL.GimpGradientFile">PIL.GimpGradientFile</a>
@@ -14555,21 +14606,23 @@ imports:
   </div>
   <div class="import">
 imported by:
-    <a href="#Modelo.Bordes_coronarios">Modelo.Bordes_coronarios</a>
+    <a href="#Modelo.Ajustador_inercia">Modelo.Ajustador_inercia</a>
+ &#8226;   <a href="#Modelo.Bordes_coronarios">Modelo.Bordes_coronarios</a>
  &#8226;   <a href="#Modelo.Bordes_ventana">Modelo.Bordes_ventana</a>
  &#8226;   <a href="#Modelo.Cargador_puntos">Modelo.Cargador_puntos</a>
  &#8226;   <a href="#Modelo.Convolucionador">Modelo.Convolucionador</a>
  &#8226;   <a href="#Modelo.Filtrador_bordes_cuello_corona">Modelo.Filtrador_bordes_cuello_corona</a>
  &#8226;   <a href="#Modelo.Filtros_espaciales">Modelo.Filtros_espaciales</a>
  &#8226;   <a href="#Modelo.Metodos_numericos">Modelo.Metodos_numericos</a>
+ &#8226;   <a href="#Modelo.Metricas">Modelo.Metricas</a>
  &#8226;   <a href="#Modelo.Morfologia">Modelo.Morfologia</a>
+ &#8226;   <a href="#Modelo.Operaciones_anchura">Modelo.Operaciones_anchura</a>
  &#8226;   <a href="#Modelo.Operador_Sobel">Modelo.Operador_Sobel</a>
  &#8226;   <a href="#Modelo.Orquestador">Modelo.Orquestador</a>
  &#8226;   <a href="#Modelo.Seguidor_basado_vertices">Modelo.Seguidor_basado_vertices</a>
  &#8226;   <a href="#Modelo.Seguidor_de_contorno">Modelo.Seguidor_de_contorno</a>
  &#8226;   <a href="#Modelo.Seguimiento">Modelo.Seguimiento</a>
  &#8226;   <a href="#Modelo.Utilidades_npListas">Modelo.Utilidades_npListas</a>
- &#8226;   <a href="#Modelo.Validador_puntos">Modelo.Validador_puntos</a>
  &#8226;   <a href="#Modelo.Visualizador_operaciones">Modelo.Visualizador_operaciones</a>
  &#8226;   <a href="#cv2">cv2</a>
  &#8226;   <a href="#cv2.mat_wrapper">cv2.mat_wrapper</a>
@@ -23170,7 +23223,8 @@ imports:
   </div>
   <div class="import">
 imported by:
-    <a href="#PIL.PdfImagePlugin">PIL.PdfImagePlugin</a>
+    <a href="#Controller.app_controller">Controller.app_controller</a>
+ &#8226;   <a href="#PIL.PdfImagePlugin">PIL.PdfImagePlugin</a>
  &#8226;   <a href="#PIL.PdfParser">PIL.PdfParser</a>
  &#8226;   <a href="#_datetime">_datetime</a>
  &#8226;   <a href="#_pydatetime">_pydatetime</a>
