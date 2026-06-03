@@ -5,7 +5,7 @@ a = Analysis(
     ['main.py'],
     pathex=[],
     binaries=[],
-    datas=[('diastemas.csv', '.')],
+    datas=[('diastemas.csv', '.'), ('Assets', 'Assets')],
     hiddenimports=['customtkinter'],
     hookspath=[],
     hooksconfig={},

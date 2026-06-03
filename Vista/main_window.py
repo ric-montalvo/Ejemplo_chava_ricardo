@@ -15,18 +15,21 @@ class MainWindow(ctk.CTk):
         self.agregar_logos()
 
     def agregar_logos(self):
-        directorio_actual = os.path.dirname(os.path.abspath(__file__))
-        ruta_logo = os.path.join(directorio_actual, "..", "Assets", "logo.png")
-
+        import sys
+        import os
+        if getattr(sys, 'frozen', False):
+            base_dir = sys._MEIPASS
+        else:
+            base_dir = os.path.dirname(os.path.abspath(__file__))
+            # Si MainWindow está en Vista/, subimos un nivel para llegar a la raíz
+            base_dir = os.path.dirname(base_dir)
+        ruta_logo = os.path.join(base_dir, "Assets", "logo.png")
         try:
             imagen_pil = Image.open(ruta_logo)
             logo_image = ctk.CTkImage(light_image=imagen_pil, dark_image=imagen_pil, size=(120, 120))
-
             self.logo_label = ctk.CTkLabel(self, image=logo_image, text="")
             self.logo_label.place(relx=0.0, rely=1.0, anchor="sw", x=15, y=0)
-            # Inicialmente visible (porque la primera vista es el menú)
             self.logo_label.lift()
-
         except FileNotFoundError:
             print(f"Error: No se encontró la imagen en: {ruta_logo}")
 
