@@ -39,7 +39,7 @@ class AppController:
 
         self.mostrar_menu()
 
-    # -------------------- Navegación --------------------
+    #  Navegación
     def mostrar_menu(self):
         self.root.cambiar_vista(MenuView(self.root, self))
 
@@ -54,7 +54,7 @@ class AppController:
     def volver_menu(self):
         self.mostrar_menu()
 
-    # -------------------- Procesamiento principal --------------------
+    #  Procesamiento principal
     def procesar_imagen(self, nombre_paciente, ruta_imagen):
         """Punto de entrada: valida, extrae nombre del archivo, crea carpeta y lanza procesamiento"""
         if not nombre_paciente or not ruta_imagen:
@@ -164,19 +164,19 @@ class AppController:
 
         # Guardar la imagen final (última de la lista) como Renderizada.bmp
         if self.imagenes_procesadas and self.carpeta_temporal:
-            img_final, _ = self.imagenes_procesadas[-1]   # la última es la imagen final
-            nombre_base = self.carpeta_temporal.name      # ej: "juan_perez"
+            img_final, _ = self.imagenes_procesadas[-1]
+            nombre_base = self.carpeta_temporal.name
             ruta_bmp = self.carpeta_temporal / f"{nombre_base}_Renderizada.bmp"
-            img_final.save(ruta_bmp)                      # PIL guarda en BMP
+            img_final.save(ruta_bmp)
 
         if self.imagenes_procesadas and len(self.imagenes_procesadas) >= 2 and self.carpeta_temporal:
-            img_puntos, _ = self.imagenes_procesadas[1]  # índice 1 = "1. Puntos iniciales"
+            img_puntos, _ = self.imagenes_procesadas[1]
             nombre_base = self.carpeta_temporal.name
             ruta_puntos = self.carpeta_temporal / f"{nombre_base}_Puntos_iniciales.jpg"
             img_puntos.save(ruta_puntos)
             print(f"Puntos iniciales guardados en {ruta_puntos}")
 
-        # Generar CSV de métricas (usando datos reales de Montoya si están disponibles)
+        # Generar CSV de métricas
         from Modelo.Productor_estadisticas import ProductorEstadisticas
 
         # Intentar obtener métricas reales desde el orquestador
@@ -239,7 +239,7 @@ class AppController:
                 except:
                     pass
 
-    # -------------------- Manejo de expedientes duplicados --------------------
+    #  Manejo de expedientes duplicados
     def on_visor_cerrado(self, destino):
         if destino == "menu":
             self.mostrar_menu()
@@ -358,7 +358,7 @@ class AppController:
         except Exception as e:
             messagebox.showerror("Error", f"No se pudo sustituir la imagen:\n{str(e)}")
 
-    # -------------------- Utilería de detalles y CSV --------------------
+    #  Utilería de detalles y CSV
     def ver_detalles(self, carpeta):
         from Vista.detalles_view import DetallesView
         DetallesView(self.root, self, carpeta)

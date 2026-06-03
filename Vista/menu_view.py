@@ -26,17 +26,14 @@ class MenuView(ctk.CTkFrame):
         card_exp.pack(side="left", padx=30, expand=True)
         card_exp.pack_propagate(False)
 
-        # ✅ Hacer que TODO el cuadrado blanco sea cliqueable
         def on_card_click(event=None):
             self.controller.mostrar_expedientes()
 
         card_exp.bind("<Button-1>", on_card_click)
 
-        # Hacer también cliqueables los elementos internos (para mejor experiencia)
         for child in card_exp.winfo_children():
             child.bind("<Button-1>", on_card_click)
 
-        # Contenido de la tarjeta (sin botón azul)
         ctk.CTkLabel(card_exp, text="📋", font=ctk.CTkFont(size=48)).pack(pady=(30, 10))
         ctk.CTkLabel(card_exp, text="Ver Expedientes", font=ctk.CTkFont(size=20, weight="bold")).pack()
         ctk.CTkLabel(card_exp, text="Consulta y administra los registros de pacientes",

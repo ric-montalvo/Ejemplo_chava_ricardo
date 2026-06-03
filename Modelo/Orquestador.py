@@ -32,7 +32,7 @@ class Orquestador:
     operaciones = Operaciones_anchura()
     metricas = Metricas()
 
-    # * NUEVO: atributo para almacenar las métricas calculadas
+    # atributo para almacenar las métricas calculadas
     def __init__(self):
         self.metricas_resultado = None
 
@@ -133,7 +133,7 @@ class Orquestador:
             if hasattr(self.cargador, 'set_nombre_archivo'):
                 self.cargador.set_nombre_archivo(None)
 
-    # * NUEVO MÉTODO: obtener las métricas reales después del procesamiento
+    #  obtener las métricas reales después del procesamiento
     def obtener_metricas_reales(self):
         """Devuelve la lista de métricas calculadas en la última llamada a procesar_pipeline"""
         return self.metricas_resultado

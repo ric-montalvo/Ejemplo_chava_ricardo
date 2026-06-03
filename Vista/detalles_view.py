@@ -36,7 +36,7 @@ class DetallesView(ctk.CTkToplevel):
         # Llamar al destroy original
         super().destroy()
 
-    # ---------- Construcción de la interfaz ----------
+    #  Construcción de la interfaz
     def _crear_widgets(self):
         self.grid_rowconfigure(1, weight=1)
         self.grid_columnconfigure(0, weight=1)
@@ -58,7 +58,7 @@ class DetallesView(ctk.CTkToplevel):
         top_panel.grid_columnconfigure(0, weight=1)  # info
         top_panel.grid_columnconfigure(1, weight=0)  # imagen (no se expande)
 
-        # ---------- Información del paciente (izquierda) ----------
+        #  Información del paciente (izquierda)
         info_frame = ctk.CTkFrame(top_panel, corner_radius=15, border_width=1, border_color="#e5e7eb", fg_color="white")
         info_frame.grid(row=0, column=0, sticky="nsew", padx=(0, 15))
         info_frame.grid_columnconfigure(0, weight=1)
@@ -78,7 +78,7 @@ class DetallesView(ctk.CTkToplevel):
 
         ctk.CTkButton(info_frame, text="Descargar CSV", width=150, fg_color="#10b981", command=self._descargar_csv).pack(anchor="w", padx=20, pady=(5, 15))
 
-        # ---------- Imagen (derecha) ----------
+        #  Imagen (derecha)
         right_img_frame = ctk.CTkFrame(top_panel, width=280, height=280, corner_radius=15, border_width=1, border_color="#e5e7eb", fg_color="white")
         right_img_frame.grid(row=0, column=1, sticky="nsew")
         right_img_frame.grid_propagate(False)
@@ -88,11 +88,11 @@ class DetallesView(ctk.CTkToplevel):
         self.imagen_label.pack(expand=True, padx=10, pady=10)
         self.imagen_label.bind("<Button-1>", self.abrir_visor)
 
-        # ---------- Tabla (scrollable) ----------
+        #  Tabla (scrollable)
         self.tabla_frame = ctk.CTkScrollableFrame(self.main_frame, height=350, fg_color="transparent")
         self.tabla_frame.grid(row=1, column=0, sticky="nsew", pady=(10, 0))
 
-        # ---------- Sección de subcarpetas (horizontal) ----------
+        #  Sección de subcarpetas (horizontal)
         sub_frame = ctk.CTkFrame(self, fg_color="transparent")
         sub_frame.grid(row=2, column=0, sticky="ew", padx=20, pady=(0, 10))
 
@@ -129,7 +129,7 @@ class DetallesView(ctk.CTkToplevel):
         self.visor_ventana = VisorView(self, imagenes, nombre_paciente, on_volver=None)
         self.visor_ventana.bind("<Destroy>", lambda e: setattr(self, 'visor_ventana', None))
 
-    # ---------- Carga de datos ----------
+    #  Carga de datos
     def _cargar_datos(self, carpeta: Path):
         self.carpeta_actual = carpeta
         self.nombre_label.configure(text=carpeta.name)
@@ -158,7 +158,7 @@ class DetallesView(ctk.CTkToplevel):
 
         self._mostrar_tabla(carpeta)
 
-    # ---------- Tabla desde CSV ----------
+    #  Tabla desde CSV
     def _mostrar_tabla(self, carpeta: Path):
         # Limpiar frame
         for widget in self.tabla_frame.winfo_children():
@@ -193,7 +193,7 @@ class DetallesView(ctk.CTkToplevel):
                     row_frame.grid_columnconfigure(col, weight=1, minsize=80)
                     ctk.CTkLabel(row_frame, text=value, anchor="w", padx=5).grid(row=0, column=col, sticky="ew", padx=1, pady=2)
 
-    # ---------- Lista de subcarpetas ----------
+    #  Lista de subcarpetas
     def _actualizar_lista_subcarpetas(self):
         for widget in self.subcarpetas_container.winfo_children():
             widget.destroy()
@@ -231,7 +231,7 @@ class DetallesView(ctk.CTkToplevel):
         self._cargar_datos(nueva_carpeta)
         self._actualizar_lista_subcarpetas()
 
-    # ---------- Exportar CSV ----------
+    #  Exportar CSV
     def _descargar_csv(self):
         import os
         csv_path = self.carpeta_actual / "metricas.csv"

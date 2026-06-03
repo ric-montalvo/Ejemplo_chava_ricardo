@@ -104,7 +104,7 @@ class ExpedientesView(ctk.CTkFrame):
         for carpeta in expedientes:
             self.crear_tarjeta(carpeta)
 
-    # ---------- Tarjetas principales y expansión ----------
+    #  Tarjetas principales y expansión
     def crear_tarjeta(self, carpeta, parent_frame=None, nivel=0):
         if parent_frame is None:
             parent_frame = self.lista_frame
@@ -207,7 +207,7 @@ class ExpedientesView(ctk.CTkFrame):
         # No se agregan botones de ver detalles ni eliminar
         return card
 
-    # ---------- Métodos existentes (mostrar_detalle, confirmar_eliminacion, etc.) ----------
+    #  Métodos existentes
     def mostrar_detalle(self, carpeta):
         archivos = list(carpeta.glob("*"))
         archivos_str = "\n".join([f"  - {a.name}" for a in archivos[:8]])
