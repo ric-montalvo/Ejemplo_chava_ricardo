@@ -1,7 +1,7 @@
 # main.py (en la raíz)
 import customtkinter as ctk
 
-from Controller.app_controller import AppController
+from Controlador.app_controller import AppController
 
 
 ctk.set_appearance_mode("light")

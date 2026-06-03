@@ -4,7 +4,7 @@ from tkinter import filedialog, messagebox
 from PIL import Image
 from pathlib import Path
 from utils.helpers import formatear_fecha
-from View.visor_view import VisorView
+from Vista.visor_view import VisorView
 
 import csv
 

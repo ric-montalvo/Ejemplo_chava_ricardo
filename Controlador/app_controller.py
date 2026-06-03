@@ -4,21 +4,19 @@ import sys
 from pathlib import Path
 from tkinter import messagebox
 import csv
-import random
 import threading
 import customtkinter as ctk
 import shutil
-from View.visor_view import VisorView
-import gc
-import time
+from Vista.visor_view import VisorView
+
 sys.path.append(os.path.dirname(os.path.dirname(__file__)))
 
 from Modelo.Orquestador import Orquestador
-from Model.file_manager import FileManager
-from View.main_window import MainWindow
-from View.menu_view import MenuView
-from View.carga_view import CargaView
-from View.expedientes_view import ExpedientesView
+from Modelo.file_manager import FileManager
+from Vista.main_window import MainWindow
+from Vista.menu_view import MenuView
+from Vista.carga_view import CargaView
+from Vista.expedientes_view import ExpedientesView
 
 
 class AppController:
@@ -362,7 +360,7 @@ class AppController:
 
     # -------------------- Utilería de detalles y CSV --------------------
     def ver_detalles(self, carpeta):
-        from View.detalles_view import DetallesView
+        from Vista.detalles_view import DetallesView
         DetallesView(self.root, self, carpeta)
 
 
